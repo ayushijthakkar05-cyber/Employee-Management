@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f9;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .filters {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 8px 12px;
+            margin: 5px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .table-container {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f1f1;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .pagination {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .page-info {
+            margin: 0 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Employee Dashboard</h2>
+
+    <!-- FILTER SECTION -->
+    <div class="filters">
+
+        <input type="text" id="searchBox" placeholder="Search name/email/age">
+
+        <input type="number" id="ageFrom" placeholder="Age From">
+        <input type="number" id="ageTo" placeholder="Age To">
+
+        <select id="sort">
+            <option value="id">Sort by ID</option>
+            <option value="name">Sort by Name</option>
+            <option value="email">Sort by Email</option>
+            <option value="age">Sort by Age</option>
+        </select>
+
+        <select id="order">
+            <option value="asc">ASC</option>
+            <option value="desc">DESC</option>
+        </select>
+
+        <button onclick="getEmployees(1)">Apply</button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-container">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Age</th>
+                </tr>
+            </thead>
+
+            <tbody id="tableBody"></tbody>
+        </table>
+
+        <!-- PAGINATION -->
+        <div class="pagination">
+            <button onclick="changePage(-1)">⬅ Prev</button>
+            <span class="page-info" id="pageInfo"></span>
+            <button onclick="changePage(1)">Next ➡</button>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+let currentPage = 1;
+let limit = 5;
+let totalRecords = 0;
+
+window.onload = function () {
+    getEmployees(1); // AUTO LOAD
+};
+
+async function getEmployees(page = 1) {
+
+    currentPage = page;
+
+    let search = document.getElementById("searchBox").value;
+    let age_from = document.getElementById("ageFrom").value;
+    let age_to = document.getElementById("ageTo").value;
+    let sort = document.getElementById("sort").value;
+    let order = document.getElementById("order").value;
+
+    let url = `http://127.0.0.1:8000/employees?page=${page}&limit=${limit}`;
+
+    if (search) url += `&search=${search}`;
+    if (age_from) url += `&age_from=${age_from}`;
+    if (age_to) url += `&age_to=${age_to}`;
+    if (sort) url += `&sort=${sort}`;
+    if (order) url += `&order=${order}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    totalRecords = data.total;
+
+    let tableBody = document.getElementById("tableBody");
+    tableBody.innerHTML = "";
+
+    data.data.forEach(emp => {
+        tableBody.innerHTML += `
+            <tr>
+                <td>${emp.id}</td>
+                <td>${emp.name}</td>
+                <td>${emp.email}</td>
+                <td>${emp.age}</td>
+            </tr>
+        `;
+    });
+
+    document.getElementById("pageInfo").innerText =
+        `Page ${data.page} | Total: ${data.total}`;
+}
+
+function changePage(step) {
+    let newPage = currentPage + step;
+
+    if (newPage < 1) return;
+
+    let maxPage = Math.ceil(totalRecords / limit);
+    if (newPage > maxPage) return;
+
+    getEmployees(newPage);
+}
+
+</script>
+
+</body>
+</html>
