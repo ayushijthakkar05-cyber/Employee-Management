@@ -4,6 +4,10 @@ from models.employee import Employee
 from models.department import Department
 from models.user import User
 from fastapi import HTTPException, status
+from typing import Literal
+from core.enums import SortFieldEnum, SortOrderEnum
+
+
 
 
 class EmployeeService:
@@ -59,6 +63,9 @@ class EmployeeService:
             "employee": new_employee
         }
 
+    
+
+
     @simple_log
     def get_employees(
         self,
@@ -67,9 +74,12 @@ class EmployeeService:
         search,
         age_from,
         age_to,
-        sort,
-        order
+        sort: SortFieldEnum = SortFieldEnum.id,
+        order: SortOrderEnum = SortOrderEnum.asc
     ):
+
+        sort = sort.value
+        order = order.value
 
         skip = (page - 1) * limit
 
@@ -95,19 +105,16 @@ class EmployeeService:
                 Employee.age <= age_to
             )
 
-        allowed_sort = [
-            "id",
-            "first_name",
-            "last_name",
-            "full_name",
-            "email",
-            "age"
-        ]
+        allowed_sort = {
+            "id": Employee.id,
+            "first_name": Employee.first_name,
+            "last_name": Employee.last_name,
+            "full_name": Employee.full_name,
+            "email": Employee.email,
+            "age": Employee.age
+        }
 
-        if sort not in allowed_sort:
-            sort = "id"
-
-        sort_column = getattr(Employee, sort)
+        sort_column = allowed_sort[sort]
 
         if order == "desc":
             query = query.order_by(
@@ -120,19 +127,24 @@ class EmployeeService:
 
         total = query.count()
 
-        employees = query.offset(skip).limit(limit).all()
+        employees = (
+            query
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
         return {
-            "page": page,
-            "limit": limit,
-            "total": total,
-            "search": search,
-            "age_from": age_from,
-            "age_to": age_to,
-            "sort": sort,
-            "order": order,
-            "data": employees
-        }
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "search": search,
+        "age_from": age_from,
+        "age_to": age_to,
+        "sort": sort,
+        "order": order,
+        "data": employees
+}
 
     @simple_log
     def update_employee(

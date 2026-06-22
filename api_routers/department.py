@@ -1,27 +1,15 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from core.dependencies import get_db
 from core.rbac import require_roles
 from core.enums import RoleEnum
-
-from schemas.department import (
-    DepartmentCreate,
-    DepartmentCreateResponse,
-    DepartmentListResponse,
-    DepartmentDetailResponse,
-    DepartmentEmployeeJoinListResponse,
-    MessageResponse
-)
-
+from schemas.department import (DepartmentCreate,DepartmentCreateResponse,DepartmentListResponse, DepartmentDetailResponse,DepartmentEmployeeJoinListResponse,MessageResponse)
 from service.department import DepartmentService
 
 router = APIRouter(
     prefix="/departments",
     tags=["Departments"]
 )
-
-
 # Create Department (Admin only)
 @router.post(
     "/",
@@ -36,7 +24,6 @@ def create_dept(
 ):
 
     service = DepartmentService(db)
-
     return service.create_department(
         department
     )
@@ -50,16 +37,11 @@ def create_dept(
 def read_departments(
     db: Session = Depends(get_db),
     current_user=Depends(
-        require_roles([
-            RoleEnum.ADMIN.value,
-            RoleEnum.MANAGER.value,
-            RoleEnum.EMPLOYEE.value
-        ])
+        require_roles([RoleEnum.ADMIN.value,RoleEnum.MANAGER.value,RoleEnum.EMPLOYEE.value])
     )
 ):
 
     service = DepartmentService(db)
-
     return service.get_departments()
 
 
@@ -71,15 +53,11 @@ def read_departments(
 def read_departments_with_employees(
     db: Session = Depends(get_db),
     current_user=Depends(
-        require_roles([
-            RoleEnum.ADMIN.value,
-            RoleEnum.MANAGER.value
-        ])
+        require_roles([RoleEnum.ADMIN.value,RoleEnum.MANAGER.value])
     )
 ):
 
     service = DepartmentService(db)
-
     return service.get_departments_with_employees()
 
 
@@ -92,21 +70,14 @@ def read_department(
     department_id: int,
     db: Session = Depends(get_db),
     current_user=Depends(
-        require_roles([
-            RoleEnum.ADMIN.value,
-            RoleEnum.MANAGER.value,
-            RoleEnum.EMPLOYEE.value
-        ])
+        require_roles([RoleEnum.ADMIN.value,RoleEnum.MANAGER.value,RoleEnum.EMPLOYEE.value])
     )
 ):
 
     service = DepartmentService(db)
-
     return service.get_department_by_id(
         department_id
     )
-
-
 # Update Department
 @router.put(
     "/{department_id}",
@@ -122,13 +93,7 @@ def update_dept(
 ):
 
     service = DepartmentService(db)
-
-    return service.update_department(
-        department_id,
-        department
-    )
-
-
+    return service.update_department( department_id,department )
 # Delete Department
 @router.delete(
     "/{department_id}",
@@ -142,7 +107,6 @@ def delete_dept(
     )
 ):
     service = DepartmentService(db)
-
     return service.delete_department(
         department_id
     )

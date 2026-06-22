@@ -1,33 +1,16 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from core.dependencies import get_current_user, get_db
 from core.rbac import require_roles
 from core.enums import RoleEnum
-
 from models.user import User
-
-from schemas.auth import (
-    UserCreate,
-    LoginRequest,
-    ChangePasswordRequest,
-    UserResponse,
-    RegisterResponse,
-    LoginResponse,
-    MessageResponse,
-    DashboardResponse
-)
-
+from schemas.auth import (UserCreate,LoginRequest,ChangePasswordRequest,UserResponse, RegisterResponse,LoginResponse,MessageResponse,DashboardResponse)
 from schemas.password_reset import ForgotPasswordRequest, ResetPasswordRequest, VerifyEmailRequest
-
 from service.auth import AuthService
-
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
 )
-
-
 @router.post(
     "/register",
     response_model=RegisterResponse
@@ -37,7 +20,6 @@ def register(
     db: Session = Depends(get_db)
 ):
     service = AuthService(db)
-
     return service.register_user(user)
 
 
@@ -50,7 +32,6 @@ def login(
     db: Session = Depends(get_db)
 ):
     service = AuthService(db)
-
     return service.login_user(login_data)
 
 
@@ -87,13 +68,10 @@ def admin_dashboard(
 def manager_dashboard(
     current_user=Depends(
         require_roles([
-            RoleEnum.ADMIN.value,
-            RoleEnum.MANAGER.value
-        ])
+            RoleEnum.ADMIN.value,RoleEnum.MANAGER.value ])
     )
 ):
     service = AuthService(None)
-
     return service.get_manager_dashboard(current_user)
 
 
@@ -104,14 +82,10 @@ def manager_dashboard(
 def employee_dashboard(
     current_user=Depends(
         require_roles([
-            RoleEnum.ADMIN.value,
-            RoleEnum.MANAGER.value,
-            RoleEnum.EMPLOYEE.value
-        ])
+            RoleEnum.ADMIN.value, RoleEnum.MANAGER.value, RoleEnum.EMPLOYEE.value ])
     )
 ):
     service = AuthService(None)
-
     return service.get_employee_dashboard(current_user)
 
 
@@ -127,9 +101,7 @@ def change_user_password(
     service = AuthService(db)
 
     return service.change_password(
-        current_user,
-        password_data
-    )
+        current_user, password_data)
 
 
 @router.post(
@@ -141,7 +113,6 @@ def forgot_user_password(
     db: Session = Depends(get_db)
 ):
     service = AuthService(db)
-
     return service.forgot_password(request)
 
 
@@ -154,7 +125,6 @@ def reset_user_password(
     db: Session = Depends(get_db)
 ):
     service = AuthService(db)
-
     return service.reset_password(request)
 
 
@@ -167,7 +137,6 @@ def resend_verification_email(
     db: Session = Depends(get_db)
 ):
     service = AuthService(db)
-
     return service.resend_verification_otp(request)
 
 
@@ -180,5 +149,4 @@ def verify_user_email(
     db: Session = Depends(get_db)
 ):
     service = AuthService(db)
-
     return service.verify_email(request)

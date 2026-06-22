@@ -1,28 +1,20 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import Literal
-
-from schemas.employee import (
-    EmployeeCreate,
-    EmployeeResponse,
-    EmployeeCreateResponse,
-    EmployeeListResponse,
-    EmployeeDepartmentJoinListResponse,
-    EmployeeDepartmentLeftJoinListResponse,
-    MessageResponse
-)
-
+from schemas.employee import (EmployeeCreate,EmployeeResponse,EmployeeCreateResponse,EmployeeListResponse,EmployeeDepartmentJoinListResponse,EmployeeDepartmentLeftJoinListResponse,MessageResponse)
 from core.dependencies import get_db
 from core.rbac import require_roles
-from core.enums import RoleEnum
-
 from service.employee import EmployeeService
+from core.enums import (
+    RoleEnum,
+    SortFieldEnum,
+    SortOrderEnum
+)
+
 
 router = APIRouter(
     prefix="/employees",
     tags=["Employees"]
 )
-
 
 # Create employee (Admin only)
 @router.post(
@@ -36,13 +28,10 @@ def create_emp(
         require_roles([RoleEnum.ADMIN.value])
     )
 ):
-
     service = EmployeeService(db)
-
     return service.create_employee(
         employee
     )
-
 
 # List employees (Admin, Manager)
 @router.get(
@@ -55,19 +44,8 @@ def read_employees(
     search: str = None,
     age_from: int = None,
     age_to: int = None,
-
-    sort: Literal[
-        "id",
-        "first_name",
-        "last_name",
-        "age",
-        "full_name"
-    ] = "id",
-
-    order: Literal[
-        "asc",
-        "desc"
-    ] = "asc",
+    sort: SortFieldEnum = SortFieldEnum.id,
+    order: SortOrderEnum = SortOrderEnum.asc,
     db: Session = Depends(get_db),
     current_user=Depends(
         require_roles([
@@ -76,7 +54,6 @@ def read_employees(
         ])
     )
 ):
-
     service = EmployeeService(db)
 
     return service.get_employees(
@@ -88,8 +65,6 @@ def read_employees(
         sort,
         order
     )
-
-
 # Logged-in employee profile
 @router.get(
     "/me",
@@ -103,11 +78,9 @@ def get_my_profile(
 ):
 
     service = EmployeeService(db)
-
     return service.get_my_employee_profile(
         current_user
     )
-
 
 # Update employee (Admin, Manager)
 @router.put(
@@ -119,20 +92,11 @@ def update_emp(
     employee: EmployeeCreate,
     db: Session = Depends(get_db),
     current_user=Depends(
-        require_roles([
-            RoleEnum.ADMIN.value,
-            RoleEnum.MANAGER.value
-        ])
+        require_roles([RoleEnum.ADMIN.value,RoleEnum.MANAGER.value])
     )
 ):
-
     service = EmployeeService(db)
-
-    return service.update_employee(
-        employee_id,
-        employee
-    )
-
+    return service.update_employee(employee_id,employee)
 
 # Delete employee (Admin only)
 @router.delete(
@@ -148,11 +112,7 @@ def delete_emp(
 ):
 
     service = EmployeeService(db)
-
-    return service.delete_employee(
-        employee_id
-    )
-
+    return service.delete_employee(employee_id)
 
 # Employee + Department Inner Join (Admin, Manager)
 @router.get(
@@ -162,13 +122,9 @@ def delete_emp(
 def read_employees_with_department(
     db: Session = Depends(get_db),
     current_user=Depends(
-        require_roles([
-            RoleEnum.ADMIN.value,
-            RoleEnum.MANAGER.value
-        ])
+        require_roles([RoleEnum.ADMIN.value,RoleEnum.MANAGER.value])
     )
 ):
-
     service = EmployeeService(db)
     return service.get_employees_with_department()
 
@@ -180,13 +136,9 @@ def read_employees_with_department(
 def read_employees_left_join(
     db: Session = Depends(get_db),
     current_user=Depends(
-        require_roles([
-            RoleEnum.ADMIN.value,
-            RoleEnum.MANAGER.value
-        ])
+        require_roles([RoleEnum.ADMIN.value,RoleEnum.MANAGER.value])
     )
 ):
 
     service = EmployeeService(db)
-
     return service.get_employees_left_join()
