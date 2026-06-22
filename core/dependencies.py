@@ -6,7 +6,7 @@ from core.database import SessionLocal
 from core.security import decode_access_token
 
 from models.user import User
-
+from uuid import UUID
 
 security = HTTPBearer()
 
@@ -22,7 +22,7 @@ def get_db():
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
 
     token = credentials.credentials
@@ -31,24 +31,19 @@ def get_current_user(
 
     if not payload:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
         )
 
-    user = db.query(User).filter(
-        User.id == payload["user_id"]
-    ).first()
+    user = db.query(User).filter(User.uuid == UUID(payload["user_uuid"])).first()
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
 
     if user.email != payload["sub"]:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token data mismatch"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token data mismatch"
         )
 
     return user

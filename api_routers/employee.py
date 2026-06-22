@@ -1,43 +1,41 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from schemas.employee import (EmployeeCreate,EmployeeResponse,EmployeeCreateResponse,EmployeeListResponse,EmployeeDepartmentJoinListResponse,EmployeeDepartmentLeftJoinListResponse,MessageResponse)
+
+from schemas.employee import (
+    EmployeeCreate,
+    EmployeeResponse,
+    EmployeeCreateResponse,
+    EmployeeListResponse,
+    EmployeeDepartmentJoinListResponse,
+    EmployeeDepartmentLeftJoinListResponse,
+    MessageResponse,
+)
+
 from core.dependencies import get_db
 from core.rbac import require_roles
 from service.employee import EmployeeService
-from core.enums import (
-    RoleEnum,
-    SortFieldEnum,
-    SortOrderEnum
-)
 
+from core.enums import RoleEnum, SortFieldEnum, SortOrderEnum
 
-router = APIRouter(
-    prefix="/employees",
-    tags=["Employees"]
-)
+router = APIRouter(prefix="/employees", tags=["Employees"])
+
 
 # Create employee (Admin only)
-@router.post(
-    "/",
-    response_model=EmployeeCreateResponse
-)
+@router.post("/", response_model=EmployeeCreateResponse)
 def create_emp(
     employee: EmployeeCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles([RoleEnum.ADMIN.value])
-    )
+    current_user=Depends(require_roles([RoleEnum.ADMIN.value])),
 ):
     service = EmployeeService(db)
-    return service.create_employee(
-        employee
-    )
+
+    return service.create_employee(employee)
+
 
 # List employees (Admin, Manager)
-@router.get(
-    "/",
-    response_model=EmployeeListResponse
-)
+@router.get("/", response_model=EmployeeListResponse)
 def read_employees(
     page: int = 1,
     limit: int = 5,
@@ -47,98 +45,66 @@ def read_employees(
     sort: SortFieldEnum = SortFieldEnum.id,
     order: SortOrderEnum = SortOrderEnum.asc,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles([
-            RoleEnum.ADMIN.value,
-            RoleEnum.MANAGER.value
-        ])
-    )
+    current_user=Depends(require_roles([RoleEnum.ADMIN.value, RoleEnum.MANAGER.value])),
 ):
     service = EmployeeService(db)
 
-    return service.get_employees(
-        page,
-        limit,
-        search,
-        age_from,
-        age_to,
-        sort,
-        order
-    )
+    return service.get_employees(page, limit, search, age_from, age_to, sort, order)
+
+
 # Logged-in employee profile
-@router.get(
-    "/me",
-    response_model=EmployeeResponse
-)
+@router.get("/me", response_model=EmployeeResponse)
 def get_my_profile(
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles([RoleEnum.EMPLOYEE.value])
-    )
+    current_user=Depends(require_roles([RoleEnum.EMPLOYEE.value])),
 ):
-
     service = EmployeeService(db)
-    return service.get_my_employee_profile(
-        current_user
-    )
+
+    return service.get_my_employee_profile(current_user)
+
 
 # Update employee (Admin, Manager)
-@router.put(
-    "/{employee_id}",
-    response_model=EmployeeCreateResponse
-)
+@router.put("/{employee_uuid}", response_model=EmployeeCreateResponse)
 def update_emp(
-    employee_id: int,
+    employee_uuid: UUID,
     employee: EmployeeCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles([RoleEnum.ADMIN.value,RoleEnum.MANAGER.value])
-    )
+    current_user=Depends(require_roles([RoleEnum.ADMIN.value, RoleEnum.MANAGER.value])),
 ):
     service = EmployeeService(db)
-    return service.update_employee(employee_id,employee)
+
+    return service.update_employee(employee_uuid, employee)
+
 
 # Delete employee (Admin only)
-@router.delete(
-    "/{employee_id}",
-    response_model=MessageResponse
-)
+@router.delete("/{employee_uuid}", response_model=MessageResponse)
 def delete_emp(
-    employee_id: int,
+    employee_uuid: UUID,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles([RoleEnum.ADMIN.value])
-    )
+    current_user=Depends(require_roles([RoleEnum.ADMIN.value])),
 ):
-
     service = EmployeeService(db)
-    return service.delete_employee(employee_id)
+
+    return service.delete_employee(employee_uuid)
+
 
 # Employee + Department Inner Join (Admin, Manager)
-@router.get(
-    "/with-department",
-    response_model=EmployeeDepartmentJoinListResponse
-)
+@router.get("/with-department", response_model=EmployeeDepartmentJoinListResponse)
 def read_employees_with_department(
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles([RoleEnum.ADMIN.value,RoleEnum.MANAGER.value])
-    )
+    current_user=Depends(require_roles([RoleEnum.ADMIN.value, RoleEnum.MANAGER.value])),
 ):
     service = EmployeeService(db)
+
     return service.get_employees_with_department()
 
-#Employee+Department Left Join (Admin, Manager)
-@router.get(
-    "/left-join",
-    response_model=EmployeeDepartmentLeftJoinListResponse
-)
+
+# Employee + Department Left Join (Admin, Manager)
+@router.get("/left-join", response_model=EmployeeDepartmentLeftJoinListResponse)
 def read_employees_left_join(
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles([RoleEnum.ADMIN.value,RoleEnum.MANAGER.value])
-    )
+    current_user=Depends(require_roles([RoleEnum.ADMIN.value, RoleEnum.MANAGER.value])),
 ):
-
     service = EmployeeService(db)
+
     return service.get_employees_left_join()

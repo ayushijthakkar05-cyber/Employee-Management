@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field, EmailStr
+from uuid import UUID
 
 
 # REQUEST SCHEMA
@@ -10,6 +11,7 @@ class DepartmentCreate(BaseModel):
 # BASIC DEPARTMENT
 class DepartmentBasic(BaseModel):
     id: int
+    uuid: UUID
     name: str
 
     class Config:
@@ -19,6 +21,8 @@ class DepartmentBasic(BaseModel):
 # EMPLOYEE INSIDE DEPARTMENT
 class DepartmentEmployeeResponse(BaseModel):
     id: int
+    uuid: UUID
+
     name: str
     email: EmailStr
     age: int
@@ -30,6 +34,8 @@ class DepartmentEmployeeResponse(BaseModel):
 # FULL DEPARTMENT RESPONSE
 class DepartmentResponse(BaseModel):
     id: int
+    uuid: UUID
+
     name: str
     description: str | None = None
 
@@ -40,6 +46,8 @@ class DepartmentResponse(BaseModel):
 # SINGLE DEPARTMENT WITH EMPLOYEES
 class DepartmentDetailResponse(BaseModel):
     id: int
+    uuid: UUID
+
     name: str
     description: str | None = None
 
@@ -63,9 +71,12 @@ class DepartmentListResponse(BaseModel):
 # JOIN RESPONSE
 class DepartmentEmployeeJoinResponse(BaseModel):
     department_id: int
+    department_uuid: UUID
     department_name: str
 
     employee_id: int | None = None
+    employee_uuid: UUID | None = None
+
     employee_name: str | None = None
     employee_email: EmailStr | None = None
 

@@ -3,65 +3,38 @@ from sqlalchemy.orm import relationship
 
 from core.database import Base
 from models.base_audit import AuditMixin
+from sqlalchemy.dialects.postgresql import UUID
+import uuid as uuid_pkg
 
 
 class User(Base, AuditMixin):
 
     __tablename__ = "users"
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
-
-    username = Column(
-        String,
+    id = Column(Integer, primary_key=True, index=True)
+    uuid = Column(
+        UUID(as_uuid=True),
+        default=uuid_pkg.uuid4,
         unique=True,
         nullable=False,
-        index=True
+        index=True,
     )
 
-    email = Column(
-        String,
-        unique=True,
-        nullable=False,
-        index=True
-    )
+    username = Column(String, unique=True, nullable=False, index=True)
 
-    password_hash = Column(
-        String,
-        nullable=False
-    )
+    email = Column(String, unique=True, nullable=False, index=True)
 
-    role_id = Column(
-        Integer,
-        ForeignKey("roles.id")
-    )
+    password_hash = Column(String, nullable=False)
 
-    role = relationship(
-        "Role",
-        back_populates="users"
-    )
+    role_id = Column(Integer, ForeignKey("roles.id"))
 
-    is_active = Column(
-        Boolean,
-        default=True
-    )
+    role = relationship("Role", back_populates="users")
 
-    is_verified = Column(
-        Boolean,
-        default=False
-    )
+    is_active = Column(Boolean, default=True)
 
-    otps = relationship(
-        "UserOTP",
-        back_populates="user"
-    )
+    is_verified = Column(Boolean, default=False)
+
+    otps = relationship("UserOTP", back_populates="user")
 
     # One User -> One Employee
-    employee = relationship(
-        "Employee",
-        back_populates="user",
-        uselist=False
-    )
+    employee = relationship("Employee", back_populates="user", uselist=False)

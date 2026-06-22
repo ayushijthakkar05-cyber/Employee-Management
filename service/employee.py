@@ -6,8 +6,7 @@ from models.user import User
 from fastapi import HTTPException, status
 from typing import Literal
 from core.enums import SortFieldEnum, SortOrderEnum
-
-
+from uuid import UUID
 
 
 class EmployeeService:
@@ -18,24 +17,24 @@ class EmployeeService:
     @simple_log
     def create_employee(self, employee):
 
-        existing = self.db.query(Employee).filter(
-            Employee.email == employee.email
-        ).first()
+        existing = (
+            self.db.query(Employee).filter(Employee.email == employee.email).first()
+        )
 
         if existing:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already exists"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists"
             )
 
-        department = self.db.query(Department).filter(
-            Department.id == employee.department_id
-        ).first()
+        department = (
+            self.db.query(Department)
+            .filter(Department.id == employee.department_id)
+            .first()
+        )
 
         if not department:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Department not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Department not found"
             )
 
         new_employee = Employee(
@@ -44,12 +43,10 @@ class EmployeeService:
             last_name=employee.last_name,
             email=employee.email,
             age=employee.age,
-            department_id=employee.department_id
+            department_id=employee.department_id,
         )
 
-        user = self.db.query(User).filter(
-            User.email == employee.email
-        ).first()
+        user = self.db.query(User).filter(User.email == employee.email).first()
 
         if user:
             new_employee.user_id = user.id
@@ -58,13 +55,7 @@ class EmployeeService:
         self.db.commit()
         self.db.refresh(new_employee)
 
-        return {
-            "message": "Employee created successfully",
-            "employee": new_employee
-        }
-
-    
-
+        return {"message": "Employee created successfully", "employee": new_employee}
 
     @simple_log
     def get_employees(
@@ -75,7 +66,7 @@ class EmployeeService:
         age_from,
         age_to,
         sort: SortFieldEnum = SortFieldEnum.id,
-        order: SortOrderEnum = SortOrderEnum.asc
+        order: SortOrderEnum = SortOrderEnum.asc,
     ):
 
         sort = sort.value
@@ -87,23 +78,15 @@ class EmployeeService:
 
         if search:
             if search.isdigit():
-                query = query.filter(
-                    Employee.age == int(search)
-                )
+                query = query.filter(Employee.age == int(search))
             else:
-                query = query.filter(
-                    Employee.full_name.ilike(f"%{search}%")
-                )
+                query = query.filter(Employee.full_name.ilike(f"%{search}%"))
 
         if age_from is not None:
-            query = query.filter(
-                Employee.age >= age_from
-            )
+            query = query.filter(Employee.age >= age_from)
 
         if age_to is not None:
-            query = query.filter(
-                Employee.age <= age_to
-            )
+            query = query.filter(Employee.age <= age_to)
 
         allowed_sort = {
             "id": Employee.id,
@@ -111,82 +94,65 @@ class EmployeeService:
             "last_name": Employee.last_name,
             "full_name": Employee.full_name,
             "email": Employee.email,
-            "age": Employee.age
+            "age": Employee.age,
         }
 
         sort_column = allowed_sort[sort]
 
         if order == "desc":
-            query = query.order_by(
-                sort_column.desc()
-            )
+            query = query.order_by(sort_column.desc())
         else:
-            query = query.order_by(
-                sort_column.asc()
-            )
+            query = query.order_by(sort_column.asc())
 
         total = query.count()
 
-        employees = (
-            query
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+        employees = query.offset(skip).limit(limit).all()
 
         return {
-        "total": total,
-        "page": page,
-        "limit": limit,
-        "search": search,
-        "age_from": age_from,
-        "age_to": age_to,
-        "sort": sort,
-        "order": order,
-        "data": employees
-}
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "search": search,
+            "age_from": age_from,
+            "age_to": age_to,
+            "sort": sort,
+            "order": order,
+            "data": employees,
+        }
 
     @simple_log
-    def update_employee(
-        self,
-        employee_id,
-        employee
-    ):
-
-        db_employee = self.db.query(Employee).filter(
-            Employee.id == employee_id
-        ).first()
-
+    def update_employee(self, employee_uuid: UUID, employee):
+        db_employee = (
+            self.db.query(Employee).filter(Employee.uuid == employee_uuid).first()
+        )
         if not db_employee:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Employee not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
             )
 
-        department = self.db.query(Department).filter(
-            Department.id == employee.department_id
-        ).first()
+        department = (
+            self.db.query(Department)
+            .filter(Department.id == employee.department_id)
+            .first()
+        )
 
         if not department:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Department not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Department not found"
             )
 
-        existing = self.db.query(Employee).filter(
-            Employee.email == employee.email,
-            Employee.id != employee_id
-        ).first()
+        existing = (
+            self.db.query(Employee)
+            .filter(Employee.email == employee.email, Employee.uuid != employee_uuid)
+            .first()
+        )
 
         if existing:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already exists"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists"
             )
 
-        db_employee.name = (
-            f"{employee.first_name} {employee.last_name}"
-        )
+        db_employee.name = f"{employee.first_name} {employee.last_name}"
 
         db_employee.first_name = employee.first_name
         db_employee.last_name = employee.last_name
@@ -197,40 +163,31 @@ class EmployeeService:
         self.db.commit()
         self.db.refresh(db_employee)
 
-        return {
-            "message": "Employee updated successfully",
-            "employee": db_employee
-        }
+        return {"message": "Employee updated successfully", "employee": db_employee}
 
     @simple_log
-    def delete_employee(self, employee_id):
+    def delete_employee(self, employee_uuid: UUID):
 
-        db_employee = self.db.query(Employee).filter(
-            Employee.id == employee_id
-        ).first()
+        db_employee = (
+            self.db.query(Employee).filter(Employee.uuid == employee_uuid).first()
+        )
 
         if not db_employee:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Employee not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
             )
 
         self.db.delete(db_employee)
         self.db.commit()
 
-        return {
-            "message": "Employee deleted successfully"
-        }
+        return {"message": "Employee deleted successfully"}
 
     @simple_log
     def get_employees_with_department(self):
 
         results = (
             self.db.query(Employee, Department)
-            .join(
-                Department,
-                Employee.department_id == Department.id
-            )
+            .join(Department, Employee.department_id == Department.id)
             .all()
         )
 
@@ -238,12 +195,14 @@ class EmployeeService:
             "data": [
                 {
                     "employee_id": emp.id,
+                    "employee_uuid": emp.uuid,
                     "first_name": emp.first_name,
                     "last_name": emp.last_name,
                     "full_name": emp.full_name,
                     "email": emp.email,
                     "department_id": dept.id,
-                    "department_name": dept.name
+                    "department_uuid": dept.uuid,
+                    "department_name": dept.name,
                 }
                 for emp, dept in results
             ]
@@ -254,10 +213,7 @@ class EmployeeService:
 
         results = (
             self.db.query(Employee, Department)
-            .outerjoin(
-                Department,
-                Employee.department_id == Department.id
-            )
+            .outerjoin(Department, Employee.department_id == Department.id)
             .all()
         )
 
@@ -265,23 +221,14 @@ class EmployeeService:
             "data": [
                 {
                     "employee_id": emp.id,
+                    "employee_uuid": emp.uuid,
                     "first_name": emp.first_name,
                     "last_name": emp.last_name,
                     "full_name": emp.full_name,
                     "department_id": dept.id if dept else None,
-                    "department_name": dept.name if dept else None
+                    "department_uuid": dept.uuid if dept else None,
+                    "department_name": dept.name if dept else None,
                 }
                 for emp, dept in results
             ]
         }
-
-    @simple_log
-    def get_my_employee_profile(self, current_user):
-
-        if not current_user.employee:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Employee profile not linked to this user"
-            )
-
-        return current_user.employee

@@ -13,10 +13,7 @@ from core.enums import OTPPurposeEnum
 from service.email import send_otp_email
 
 
-def forgot_password(
-    db: Session,
-    email: str
-):
+def forgot_password(db: Session, email: str):
 
     user = db.query(User).filter(
         User.email == email
@@ -50,14 +47,12 @@ def forgot_password(
     db.add(otp_record)
     db.commit()
 
-    send_otp_email(
-        user.email,
-        otp
-    )
+    send_otp_email(user.email, otp)
 
     return {
         "message": "OTP sent successfully"
     }
+
 
 def reset_password(
     db: Session,
@@ -76,12 +71,16 @@ def reset_password(
             detail="User not found"
         )
 
-    otp_record = db.query(UserOTP).filter(
-        UserOTP.user_id == user.id,
-        UserOTP.otp == otp,
-        UserOTP.purpose == OTPPurposeEnum.FORGOT_PASSWORD.value,
-        UserOTP.is_used == False
-    ).first()
+    otp_record = (
+        db.query(UserOTP)
+        .filter(
+            UserOTP.user_id == user.id,
+            UserOTP.otp == otp,
+            UserOTP.purpose == OTPPurposeEnum.FORGOT_PASSWORD.value,
+            UserOTP.is_used == False
+        )
+        .first()
+    )
 
     if not otp_record:
         raise HTTPException(
@@ -99,7 +98,15 @@ def reset_password(
         new_password
     )
 
-    otp_record.is_used = True
+    # Mark all remaining forgot-password OTPs as used
+    db.query(UserOTP).filter(
+        UserOTP.user_id == user.id,
+        UserOTP.purpose == OTPPurposeEnum.FORGOT_PASSWORD.value,
+        UserOTP.is_used == False
+    ).update(
+        {"is_used": True},
+        synchronize_session=False
+    )
 
     db.commit()
 
@@ -107,11 +114,12 @@ def reset_password(
         "message": "Password reset successfully"
     }
 
-# resend verification otp
+
 def resend_verification_otp(
     db: Session,
     email: str
 ):
+
     user = db.query(User).filter(
         User.email == email
     ).first()
@@ -150,14 +158,12 @@ def resend_verification_otp(
     db.add(otp_record)
     db.commit()
 
-    send_otp_email(
-        user.email,
-        otp
-    )
+    send_otp_email(user.email, otp)
 
     return {
         "message": "Verification OTP resent successfully"
     }
+
 
 def verify_email(
     db: Session,
@@ -175,12 +181,16 @@ def verify_email(
             detail="User not found"
         )
 
-    otp_record = db.query(UserOTP).filter(
-        UserOTP.user_id == user.id,
-        UserOTP.otp == otp,
-        UserOTP.purpose == OTPPurposeEnum.EMAIL_VERIFICATION.value,
-        UserOTP.is_used == False
-    ).first()
+    otp_record = (
+        db.query(UserOTP)
+        .filter(
+            UserOTP.user_id == user.id,
+            UserOTP.otp == otp,
+            UserOTP.purpose == OTPPurposeEnum.EMAIL_VERIFICATION.value,
+            UserOTP.is_used == False
+        )
+        .first()
+    )
 
     if not otp_record:
         raise HTTPException(

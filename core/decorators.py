@@ -23,8 +23,6 @@ def simple_log(func):
             raise
 
         finally:
-            logger.info(
-                f"END: {func.__name__} | TIME: {time.time() - start:.4f}s"
-            )
+            logger.info(f"END: {func.__name__} | TIME: {time.time() - start:.4f}s")
 
     return wrapper

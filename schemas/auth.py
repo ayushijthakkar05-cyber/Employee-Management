@@ -4,21 +4,17 @@ from pydantic import (
     Field,
     field_validator,
     model_validator,
-    ConfigDict
+    ConfigDict,
 )
 
 
 def validate_password_strength(value: str) -> str:
 
     if not any(c.isupper() for c in value):
-        raise ValueError(
-            "Password must contain an uppercase letter"
-        )
+        raise ValueError("Password must contain an uppercase letter")
 
     if not any(c.isdigit() for c in value):
-        raise ValueError(
-            "Password must contain a number"
-        )
+        raise ValueError("Password must contain a number")
 
     return value
 
@@ -26,30 +22,19 @@ def validate_password_strength(value: str) -> str:
 class UserCreate(BaseModel):
 
     # Allows both alias and original field names
-    model_config = ConfigDict(
-        populate_by_name=True
-    )
+    model_config = ConfigDict(populate_by_name=True)
 
-    username: str = Field(
-        min_length=3,
-        max_length=50
-    )
+    username: str = Field(min_length=3, max_length=50)
 
     email: EmailStr
 
-    password: str = Field(
-        min_length=8
-    )
+    password: str = Field(min_length=8)
 
     # Frontend can send confirmPassword
-    confirm_password: str = Field(
-        alias="confirmPassword"
-    )
+    confirm_password: str = Field(alias="confirmPassword")
 
     # Frontend can send roleId
-    role_id: int = Field(
-        alias="roleId"
-    )
+    role_id: int = Field(alias="roleId")
 
     @model_validator(mode="before")
     @classmethod
@@ -69,9 +54,7 @@ class UserCreate(BaseModel):
     def passwords_match(self):
 
         if self.password != self.confirm_password:
-            raise ValueError(
-                "Passwords do not match"
-            )
+            raise ValueError("Passwords do not match")
 
         return self
 
@@ -85,20 +68,13 @@ class LoginRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
 
     # Allows both alias and original field names
-    model_config = ConfigDict(
-        populate_by_name=True
-    )
+    model_config = ConfigDict(populate_by_name=True)
 
     # Frontend can send oldPassword
-    old_password: str = Field(
-        alias="oldPassword"
-    )
+    old_password: str = Field(alias="oldPassword")
 
     # Frontend can send newPassword
-    new_password: str = Field(
-        alias="newPassword",
-        min_length=8
-    )
+    new_password: str = Field(alias="newPassword", min_length=8)
 
     @field_validator("new_password")
     @classmethod
@@ -106,8 +82,13 @@ class ChangePasswordRequest(BaseModel):
         return validate_password_strength(value)
 
 
+from uuid import UUID
+
+from uuid import UUID
+
+
 class RoleResponse(BaseModel):
-    id: int
+    uuid: UUID
     name: str
 
     class Config:
@@ -115,11 +96,12 @@ class RoleResponse(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: int
+    uuid: UUID
     username: str
     email: EmailStr
     role: RoleResponse
     is_active: bool
+    is_verified: bool
 
     class Config:
         from_attributes = True

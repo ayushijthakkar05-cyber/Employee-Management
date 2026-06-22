@@ -1,2 +1,23 @@
+.envtest.txt
+# Virtual environment
+venv/
+
+# Environment variables
 .env
-test.txt
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Pytest
+.pytest_cache/
+
+# VS Code
+.vscode/
+
+# JetBrains
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

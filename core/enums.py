@@ -2,9 +2,9 @@ from enum import Enum
 
 
 class RoleEnum(str, Enum):
-    ADMIN = "admin"
-    MANAGER = "manager"
-    EMPLOYEE = "employee"
+    ADMIN = "ADMIN"
+    MANAGER = "MANAGER"
+    EMPLOYEE = "EMPLOYEE"
 
 
 class OTPPurposeEnum(str, Enum):
