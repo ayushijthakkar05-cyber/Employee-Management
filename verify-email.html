@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify Email</title>
+</head>
+
+<body>
+
+    <h1>Email Verification</h1>
+
+    <input
+        id="email"
+        placeholder="Email"
+        readonly
+    >
+
+    <br><br>
+
+    <input
+        id="otp"
+        placeholder="Enter OTP"
+    >
+
+    <br><br>
+
+    <button onclick="verifyEmail()">
+        Verify Email
+    </button>
+
+    <p id="result"></p>
+
+<script>
+
+window.onload = function() {
+
+    const email =
+        localStorage.getItem("email");
+
+    document.getElementById("email").value =
+        email;
+};
+
+async function verifyEmail() {
+
+    const email =
+        document.getElementById("email").value;
+
+    const otp =
+        document.getElementById("otp").value;
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/auth/verify-email",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                email: email,
+                otp: otp
+            })
+        }
+    );
+
+    const data =
+        await response.json();
+
+    console.log(data);
+
+    if(response.ok){
+
+        document.getElementById("result")
+            .innerText = data.message;
+
+        setTimeout(() => {
+
+            window.location.href =
+                "login.html";
+
+        }, 2000);
+
+    }else{
+
+        let errorMessage =
+            "Verification Failed";
+
+        if(data.detail){
+
+            if(Array.isArray(data.detail)){
+
+                errorMessage =
+                    data.detail[0].msg;
+
+            }else{
+
+                errorMessage =
+                    data.detail;
+            }
+        }
+
+        document.getElementById("result")
+            .innerText = errorMessage;
+    }
+}
+
+</script>
+
+</body>
+</html>

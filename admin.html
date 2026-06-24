@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+
+<body>
+
+<h1>Admin Dashboard</h1>
+
+<button onclick="logout()">
+    Logout
+</button>
+
+<hr>
+
+<h2>Quick Stats</h2>
+
+<p>
+    Total Employees:
+    <span id="employeeCount">0</span>
+</p>
+
+<p>
+    Total Departments:
+    <span id="departmentCount">0</span>
+</p>
+
+<hr>
+
+<button onclick="window.location.href='employees.html'">
+    Manage Employees
+</button>
+
+<br><br>
+
+<button onclick="window.location.href='departments.html'">
+    Manage Departments
+</button>
+
+<script>
+
+const token = localStorage.getItem("token");
+
+if (!token) {
+    window.location.href = "login.html";
+}
+
+async function loadStats() {
+
+    const employeeResponse = await fetch(
+        "http://127.0.0.1:8000/employees/?limit=1000",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+   const employeeData =
+    await employeeResponse.json();
+
+console.log("EMPLOYEE RESPONSE");
+console.log(employeeData);
+
+document.getElementById("employeeCount")
+    .innerText =
+    employeeData.total;
+    
+    const departmentResponse = await fetch(
+        "http://127.0.0.1:8000/departments/",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const departmentData =
+        await departmentResponse.json();
+
+    document.getElementById("departmentCount")
+        .innerText =
+        departmentData.data.length;
+}
+
+function logout() {
+
+    localStorage.removeItem("token");
+
+    window.location.href = "login.html";
+}
+
+loadStats();
+
+</script>
+
+</body>
+</html>

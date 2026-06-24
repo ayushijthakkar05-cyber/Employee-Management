@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+</head>
+
+<body>
+
+    <h1>Employee Management System</h1>
+
+    <h2>Login</h2>
+
+    <input
+        id="email"
+        placeholder="Email"
+    >
+
+    <br><br>
+
+    <input
+        id="password"
+        type="password"
+        placeholder="Password"
+    >
+
+    <br><br>
+
+    <button onclick="login()">
+        Login
+    </button>
+
+    <br><br>
+
+    <a href="register.html">
+        New User? Register
+    </a>
+
+    <p id="result"></p>
+
+<script>
+
+async function login() {
+
+    const email =
+        document.getElementById("email").value;
+
+    const password =
+        document.getElementById("password").value;
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/auth/login",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        }
+    );
+
+    const data =
+        await response.json();
+
+    console.log(data);
+
+    if(response.ok){
+
+    localStorage.setItem(
+        "token",
+        data.access_token
+    );
+
+    const profileResponse = await fetch(
+        "http://127.0.0.1:8000/auth/me",
+        {
+            headers: {
+                Authorization:
+                    `Bearer ${data.access_token}`
+            }
+        }
+    );
+
+    const profile =
+        await profileResponse.json();
+
+    const role =
+        profile.role.name;
+
+    if(role === "ADMIN"){
+
+        window.location.href =
+            "admin.html";
+
+    }
+    else if(role === "MANAGER"){
+
+        window.location.href =
+            "manager.html";
+
+    }
+    else{
+
+        window.location.href =
+            "employee.html";
+
+    }
+}
+
+    else{
+
+        let errorMessage =
+            "Login Failed";
+
+        if(data.detail){
+
+            errorMessage =
+                data.detail;
+        }
+
+        document.getElementById("result")
+            .innerText =
+            errorMessage;
+    }
+}
+
+</script>
+
+</body>
+</html>
