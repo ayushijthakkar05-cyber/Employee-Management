@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manager Employee Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Manager Employee Portal</h1>
+
+<button onclick="window.location.href='manager.html'">
+    Back To Dashboard
+</button>
+
+<button onclick="logout()">
+    Logout
+</button>
+
+<hr>
+
+<h2>My Details</h2>
+
+<p>
+    <b>Username:</b>
+    <span id="username"></span>
+</p>
+
+<p>
+    <b>Email:</b>
+    <span id="email"></span>
+</p>
+
+<p>
+    <b>Role:</b>
+    <span id="role"></span>
+</p>
+
+<p>
+    <b>Verified:</b>
+    <span id="verified"></span>
+</p>
+
+<hr>
+
+<h2>Employees</h2>
+
+<table border="1" cellpadding="10">
+
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Age</th>
+            <th>Department</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody id="employeeTable"></tbody>
+
+</table>
+
+<script>
+
+const token = localStorage.getItem("token");
+
+if (!token) {
+
+    window.location.href = "login.html";
+}
+
+async function loadProfile() {
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/auth/me",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    document.getElementById("username").innerText =
+        data.username;
+
+    document.getElementById("email").innerText =
+        data.email;
+
+    document.getElementById("role").innerText =
+        data.role.name;
+
+    document.getElementById("verified").innerText =
+        data.is_verified;
+}
+
+async function loadEmployees() {
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/employees/?limit=1000",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    let rows = "";
+
+    data.data.forEach(emp => {
+
+        rows += `
+        <tr>
+
+            <td>${emp.full_name}</td>
+
+            <td>${emp.email}</td>
+
+            <td>${emp.age}</td>
+
+            <td>${emp.department.name}</td>
+
+            <td>
+
+                <button onclick="viewEmployee('${emp.uuid}')">
+                    View
+                </button>
+
+                <button onclick="editEmployee('${emp.uuid}')">
+                    Edit
+                </button>
+
+            </td>
+
+        </tr>
+        `;
+    });
+
+    document.getElementById("employeeTable")
+        .innerHTML = rows;
+}
+
+function viewEmployee(employeeUuid) {
+
+    alert(
+        "View Employee Coming Soon\n\nUUID: " +
+        employeeUuid
+    );
+}
+
+function editEmployee(employeeUuid) {
+
+    alert(
+        "Edit Employee Coming Soon\n\nUUID: " +
+        employeeUuid
+    );
+}
+
+function logout() {
+
+    localStorage.removeItem("token");
+
+    window.location.href = "login.html";
+}
+
+loadProfile();
+loadEmployees();
+
+</script>
+
+</body>
+</html>

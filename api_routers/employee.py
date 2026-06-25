@@ -11,12 +11,14 @@ from schemas.employee import (
     EmployeeDepartmentJoinListResponse,
     EmployeeDepartmentLeftJoinListResponse,
     MessageResponse,
+    EmployeeStatisticsResponse,
 )
+from schemas.user import AssignManagerDepartmentRequest
 
 from core.dependencies import get_db
 from core.rbac import require_roles
 from service.employee import EmployeeService
-
+from service.auth import AuthService
 from core.enums import RoleEnum, SortFieldEnum, SortOrderEnum
 
 router = APIRouter(prefix="/employees", tags=["Employees"])
@@ -49,7 +51,8 @@ def read_employees(
 ):
     service = EmployeeService(db)
 
-    return service.get_employees(page, limit, search, age_from, age_to, sort, order)
+    return service.get_employees(page, limit, search, age_from, age_to, sort, order,current_user,)
+
 
 
 # Logged-in employee profile
@@ -61,32 +64,6 @@ def get_my_profile(
     service = EmployeeService(db)
 
     return service.get_my_employee_profile(current_user)
-
-
-# Update employee (Admin, Manager)
-@router.put("/{employee_uuid}", response_model=EmployeeCreateResponse)
-def update_emp(
-    employee_uuid: UUID,
-    employee: EmployeeCreate,
-    db: Session = Depends(get_db),
-    current_user=Depends(require_roles([RoleEnum.ADMIN.value, RoleEnum.MANAGER.value])),
-):
-    service = EmployeeService(db)
-
-    return service.update_employee(employee_uuid, employee)
-
-
-# Delete employee (Admin only)
-@router.delete("/{employee_uuid}", response_model=MessageResponse)
-def delete_emp(
-    employee_uuid: UUID,
-    db: Session = Depends(get_db),
-    current_user=Depends(require_roles([RoleEnum.ADMIN.value])),
-):
-    service = EmployeeService(db)
-
-    return service.delete_employee(employee_uuid)
-
 
 # Employee + Department Inner Join (Admin, Manager)
 @router.get("/with-department", response_model=EmployeeDepartmentJoinListResponse)
@@ -108,3 +85,85 @@ def read_employees_left_join(
     service = EmployeeService(db)
 
     return service.get_employees_left_join()
+
+@router.get(
+    "/statistics",
+    response_model=EmployeeStatisticsResponse,
+)
+def employee_statistics(
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            [
+                RoleEnum.ADMIN.value,
+                RoleEnum.MANAGER.value,
+            ]
+        )
+    ),
+):
+    service = EmployeeService(db)
+
+    return service.get_employee_statistics()
+
+@router.get("/{employee_uuid}", response_model=EmployeeResponse)
+def read_employee(
+    employee_uuid: UUID,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            [
+                RoleEnum.ADMIN.value,
+                RoleEnum.MANAGER.value,
+            ]
+        )
+    ),
+):
+    service = EmployeeService(db)
+
+    return service.get_employee_by_uuid(employee_uuid)
+
+
+
+# Update employee (Admin, Manager)
+@router.put("/{employee_uuid}", response_model=EmployeeCreateResponse)
+def update_emp(
+    employee_uuid: UUID,
+    employee: EmployeeCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_roles([RoleEnum.ADMIN.value, RoleEnum.MANAGER.value])),
+):
+    service = EmployeeService(db)
+
+    return service.update_employee(employee_uuid, employee)
+@router.put(
+    "/users/{user_uuid}/assign-department"
+)
+def assign_manager_department(
+    user_uuid: UUID,
+    request: AssignManagerDepartmentRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            [RoleEnum.ADMIN.value]
+        )
+    ),
+):
+    service = AuthService(db)
+
+    return service.assign_manager_department(
+        user_uuid,
+        request.department_id,
+    )
+
+# Delete employee (Admin only)
+@router.delete("/{employee_uuid}", response_model=MessageResponse)
+def delete_emp(
+    employee_uuid: UUID,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_roles([RoleEnum.ADMIN.value])),
+):
+    service = EmployeeService(db)
+
+    return service.delete_employee(employee_uuid)
+
+

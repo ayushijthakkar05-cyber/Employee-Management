@@ -2,10 +2,71 @@
 <html>
 <head>
     <title>Manager Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <h1>Manager Dashboard</h1>
+
+<button onclick="logout()">
+    Logout
+</button>
+
+<hr>
+
+<h2>Quick Stats</h2>
+
+<p>
+    Total Employees:
+    <span id="employeeCount">0</span>
+</p>
+
+<hr>
+
+<button onclick="window.location.href='manager-employees.html'">
+    Manage Employees
+</button>
+<br><br>
+
+
+<script>
+
+const token = localStorage.getItem("token");
+
+if (!token) {
+    window.location.href = "login.html";
+}
+
+async function loadStats() {
+
+    const employeeResponse = await fetch(
+        "http://127.0.0.1:8000/employees/?limit=1000",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const employeeData =
+        await employeeResponse.json();
+
+    document.getElementById("employeeCount")
+        .innerText =
+        employeeData.total;
+}
+
+function logout() {
+
+    localStorage.removeItem("token");
+
+    window.location.href = "login.html";
+}
+
+loadStats();
+
+</script>
 
 </body>
 </html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Department</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Create Department</h1>
+
+<button onclick="window.location.href='departments.html'">
+    Back
+</button>
+
+<hr>
+
+<input
+    id="departmentName"
+    placeholder="Department Name"
+>
+
+<br><br>
+
+<input
+    id="departmentDescription"
+    placeholder="Department Description"
+>
+
+<br><br>
+
+<button onclick="createDepartment()">
+    Create Department
+</button>
+
+<p id="message"></p>
+
+<script>
+
+const token =
+    localStorage.getItem("token");
+
+if (!token) {
+
+    window.location.href =
+        "login.html";
+}
+
+async function createDepartment(){
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/departments/",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json",
+
+                Authorization:
+                    `Bearer ${token}`
+            },
+
+            body: JSON.stringify({
+
+                name:
+                    document.getElementById("departmentName").value,
+
+                description:
+                    document.getElementById("departmentDescription").value
+            })
+        }
+    );
+
+    const data =
+        await response.json();
+
+    if(response.ok){
+
+        alert(data.message);
+
+        window.location.href =
+            "departments.html";
+    }
+    else{
+
+        document.getElementById("message")
+            .innerText =
+            data.detail;
+    }
+}
+
+</script>
+
+</body>
+</html>

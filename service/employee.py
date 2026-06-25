@@ -7,7 +7,7 @@ from fastapi import HTTPException, status
 from typing import Literal
 from core.enums import SortFieldEnum, SortOrderEnum
 from uuid import UUID
-
+from sqlalchemy import func
 
 class EmployeeService:
 
@@ -67,6 +67,7 @@ class EmployeeService:
         age_to,
         sort: SortFieldEnum = SortFieldEnum.id,
         order: SortOrderEnum = SortOrderEnum.asc,
+        current_user=None,
     ):
 
         sort = sort.value
@@ -75,6 +76,18 @@ class EmployeeService:
         skip = (page - 1) * limit
 
         query = self.db.query(Employee)
+        if current_user.role.name == "MANAGER":
+             query = query.filter(
+            Employee.department_id == current_user.manager_department_id
+    )
+        if (
+            current_user
+            and current_user.role.name == "manager"
+    ):
+            query = query.filter(
+            Employee.department_id
+            == current_user.manager_department_id
+        )
 
         if search:
             if search.isdigit():
@@ -118,6 +131,7 @@ class EmployeeService:
             "sort": sort,
             "order": order,
             "data": employees,
+            
         }
 
     @simple_log
@@ -232,3 +246,64 @@ class EmployeeService:
                 for emp, dept in results
             ]
         }
+    @simple_log
+    def get_employee_by_uuid(self, employee_uuid: UUID):
+
+        employee = (
+            self.db.query(Employee)
+            .filter(Employee.uuid == employee_uuid)
+            .first()
+        )
+
+        if not employee:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Employee not found"
+            )
+
+        return employee
+    
+    @simple_log
+    def get_employee_statistics(self):
+
+        total = self.db.query(Employee).count()
+
+        average_age = (
+            self.db.query(func.avg(Employee.age))
+            .scalar()
+        )
+
+        youngest_age = (
+            self.db.query(func.min(Employee.age))
+            .scalar()
+        )
+
+        oldest_age = (
+            self.db.query(func.max(Employee.age))
+            .scalar()
+        )
+
+        return {
+            "total_employees": total,
+            "average_age": round(average_age or 0, 2),
+            "youngest_age": youngest_age or 0,
+            "oldest_age": oldest_age or 0,
+        }
+        
+        
+    @simple_log
+    def get_my_employee_profile(self, current_user):
+
+        employee = (
+            self.db.query(Employee)
+            .filter(Employee.user_id == current_user.id)
+            .first()
+        )
+
+        if not employee:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Employee profile not found"
+            )
+
+        return employee    

@@ -2,10 +2,92 @@
 <html>
 <head>
     <title>Employee Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <h1>Employee Dashboard</h1>
+
+<button onclick="logout()">
+    Logout
+</button>
+
+<hr>
+
+<h2>My Profile</h2>
+
+<p>
+    <b>Username:</b>
+    <span id="username"></span>
+</p>
+
+<p>
+    <b>Email:</b>
+    <span id="email"></span>
+</p>
+
+<p>
+    <b>Role:</b>
+    <span id="role"></span>
+</p>
+
+<p>
+    <b>Verified:</b>
+    <span id="verified"></span>
+</p>
+
+<hr>
+
+<button onclick="window.location.href='change-password.html'">
+    Change Password
+</button>
+
+<script>
+
+const token = localStorage.getItem("token");
+
+if (!token) {
+
+    window.location.href = "login.html";
+}
+
+async function loadProfile() {
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/auth/me",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    document.getElementById("username").innerText =
+        data.username;
+
+    document.getElementById("email").innerText =
+        data.email;
+
+    document.getElementById("role").innerText =
+        data.role.name;
+
+    document.getElementById("verified").innerText =
+        data.is_verified;
+}
+
+function logout() {
+
+    localStorage.removeItem("token");
+
+    window.location.href = "login.html";
+}
+
+loadProfile();
+
+</script>
 
 </body>
 </html>

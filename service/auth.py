@@ -4,6 +4,8 @@ from fastapi import HTTPException, status
 from models.user import User
 from models.role import Role
 from models.employee import Employee
+from uuid import UUID
+from models.department import Department
 
 from datetime import datetime, timedelta
 from models.user_otp import UserOTP
@@ -130,7 +132,48 @@ class AuthService:
         )
 
         return {"access_token": access_token, "token_type": "bearer"}
+    @simple_log
+    def assign_manager_department(
+        self,
+        user_uuid: UUID,
+        department_id: int,
+    ):
 
+        user = (
+            self.db.query(User)
+            .filter(User.uuid == user_uuid)
+            .first()
+        )
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
+        department = (
+            self.db.query(Department)
+            .filter(Department.id == department_id)
+            .first()
+        )
+
+        if not department:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Department not found",
+            )
+
+        user.manager_department_id = department_id
+
+        self.db.commit()
+        self.db.refresh(user)
+
+        return {
+            "message": "Department assigned successfully",
+            "user_uuid": user.uuid,
+            "department_id": department.id,
+            "department_name": department.name,
+        }
     @simple_log
     def change_password(self, current_user, password_data):
 
@@ -173,3 +216,5 @@ class AuthService:
 
     def verify_email(self, request):
         return verify_email_service(self.db, request.email, request.otp)
+    
+    

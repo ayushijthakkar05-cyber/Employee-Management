@@ -34,7 +34,14 @@ class User(Base, AuditMixin):
 
     is_verified = Column(Boolean, default=False)
 
+    manager_department_id = Column(
+        Integer,
+        ForeignKey("departments.id"),
+        nullable=True
+    )
     otps = relationship("UserOTP", back_populates="user")
 
     # One User -> One Employee
     employee = relationship("Employee", back_populates="user", uselist=False)
+    
+    manager_department = relationship("Department")

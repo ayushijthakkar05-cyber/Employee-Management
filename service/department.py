@@ -4,6 +4,7 @@ from models.employee import Employee
 from fastapi import HTTPException, status
 from core.decorators import simple_log
 from uuid import UUID
+from sqlalchemy import func
 
 
 class DepartmentService:
@@ -139,3 +140,55 @@ class DepartmentService:
                 for dept, emp in results
             ]
         }
+    @simple_log
+    def get_department_statistics(self):
+
+        results = (
+            self.db.query(
+                Department.name,
+                func.count(Employee.id)
+            )
+            .outerjoin(
+                Employee,
+                Employee.department_id == Department.id
+            )
+            .group_by(Department.name)
+            .all()
+        )
+
+        return {
+            "data": [
+                {
+                    "department_name": name,
+                    "employee_count": count,
+                }
+                for name, count in results
+            ]
+        }
+        
+    @simple_log
+    def get_department_employees(
+        self,
+        department_uuid: UUID,
+    ):
+
+        department = (
+            self.db.query(Department)
+            .filter(
+                Department.uuid == department_uuid
+            )
+            .first()
+        )
+
+        if not department:
+            raise HTTPException(
+                status_code=404,
+                detail="Department not found",
+            )
+
+        return {
+            "department_name": department.name,
+            "employees": department.employees,
+        }    
+        
+        

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Create Employee</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Create Employee</h1>
+
+<button onclick="window.location.href='employees.html'">
+    Back
+</button>
+
+<hr>
+
+<input
+    id="firstName"
+    placeholder="First Name"
+>
+
+<br><br>
+
+<input
+    id="lastName"
+    placeholder="Last Name"
+>
+
+<br><br>
+
+<input
+    id="email"
+    placeholder="Email"
+>
+
+<br><br>
+
+<input
+    id="age"
+    type="number"
+    placeholder="Age"
+>
+
+<br><br>
+
+<select id="departmentId">
+
+</select>
+
+<br><br>
+
+<button onclick="createEmployee()">
+    Create Employee
+</button>
+
+<p id="message"></p>
+
+<script>
+
+const token =
+    localStorage.getItem("token");
+
+if (!token) {
+
+    window.location.href =
+        "login.html";
+}
+
+async function loadDepartments() {
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/departments/",
+        {
+            headers: {
+                Authorization:
+                    `Bearer ${token}`
+            }
+        }
+    );
+
+    const data =
+        await response.json();
+
+    let options = "";
+
+    data.data.forEach(dept => {
+
+        options += `
+        <option value="${dept.id}">
+            ${dept.name}
+        </option>
+        `;
+    });
+
+    document.getElementById("departmentId")
+        .innerHTML = options;
+}
+
+async function createEmployee() {
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/employees/",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json",
+
+                Authorization:
+                    `Bearer ${token}`
+            },
+
+            body: JSON.stringify({
+
+                firstName:
+                    document.getElementById("firstName").value,
+
+                lastName:
+                    document.getElementById("lastName").value,
+
+                email:
+                    document.getElementById("email").value,
+
+                age:
+                    parseInt(
+                        document.getElementById("age").value
+                    ),
+
+                departmentId:
+                    parseInt(
+                        document.getElementById("departmentId").value
+                    )
+            })
+        }
+    );
+
+    const data =
+        await response.json();
+
+    if (response.ok) {
+
+        alert(data.message);
+
+        window.location.href =
+            "employees.html";
+    }
+    else {
+
+        document.getElementById("message")
+            .innerText =
+            data.detail;
+    }
+}
+
+loadDepartments();
+
+</script>
+
+</body>
+
+</html>

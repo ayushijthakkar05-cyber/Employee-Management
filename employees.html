@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Employee Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Employee Management</h1>
+
+<button onclick="window.location.href='admin.html'">
+    Back To Dashboard
+</button>
+
+<button onclick="logout()">
+    Logout
+</button>
+
+<hr>
+
+<input
+    id="search"
+    placeholder="Search Employee"
+>
+
+<button onclick="loadEmployees()">
+    Search
+</button>
+
+<button onclick="window.location.href='create-employee.html'">
+    + Create Employee
+</button>
+
+<hr>
+
+<table border="1" cellpadding="10">
+
+    <thead>
+
+        <tr>
+
+            <th>Name</th>
+
+            <th>Email</th>
+
+            <th>Age</th>
+
+            <th>Department</th>
+
+            <th>Actions</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody id="employeeTable">
+
+    </tbody>
+
+</table>
+
+<br>
+
+<button onclick="previousPage()">
+    Previous
+</button>
+
+<span id="pageNumber">
+    Page 1
+</span>
+
+<button onclick="nextPage()">
+    Next
+</button>
+
+<script>
+
+const token =
+    localStorage.getItem("token");
+
+let currentPage = 1;
+
+if (!token) {
+
+    window.location.href =
+        "login.html";
+}
+
+async function loadEmployees() {
+
+    const search =
+        document.getElementById("search").value;
+
+    const response = await fetch(
+        `http://127.0.0.1:8000/employees/?page=${currentPage}&limit=5&search=${search}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data =
+        await response.json();
+
+    let html = "";
+
+    data.data.forEach(emp => {
+
+        html += `
+        <tr>
+
+            <td>${emp.full_name}</td>
+
+            <td>${emp.email}</td>
+
+            <td>${emp.age}</td>
+
+            <td>${emp.department.name}</td>
+
+            <td>
+
+                <button
+                    onclick="viewEmployee('${emp.uuid}')">
+                    View
+                </button>
+
+                <button
+                    onclick="editEmployee('${emp.uuid}')">
+                    Edit
+                </button>
+
+                <button
+                    onclick="deleteEmployee('${emp.uuid}')">
+                    Delete
+                </button>
+
+            </td>
+
+        </tr>
+        `;
+    });
+
+    document.getElementById("employeeTable")
+        .innerHTML = html;
+
+    document.getElementById("pageNumber")
+        .innerText =
+        `Page ${currentPage}`;
+}
+
+function previousPage() {
+
+    if(currentPage > 1){
+
+        currentPage--;
+
+        loadEmployees();
+    }
+}
+
+function nextPage() {
+
+    currentPage++;
+
+    loadEmployees();
+}
+
+function viewEmployee(uuid){
+
+    alert("Coming Soon");
+}
+
+function editEmployee(uuid){
+
+    alert("Coming Soon");
+}
+
+async function deleteEmployee(uuid){
+
+    const response = await fetch(
+        `http://127.0.0.1:8000/employees/${uuid}`,
+        {
+            method: "DELETE",
+
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data =
+        await response.json();
+
+    alert(data.message);
+
+    loadEmployees();
+}
+
+function logout(){
+
+    localStorage.removeItem("token");
+
+    window.location.href =
+        "login.html";
+}
+
+loadEmployees();
+
+</script>
+
+</body>
+
+</html>

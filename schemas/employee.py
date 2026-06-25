@@ -111,3 +111,9 @@ class EmployeeDepartmentLeftJoinListResponse(BaseModel):
 # COMMON MESSAGE RESPONSE
 class MessageResponse(BaseModel):
     message: str
+    
+class EmployeeStatisticsResponse(BaseModel):
+    total_employees: int
+    average_age: float
+    youngest_age: int
+    oldest_age: int    

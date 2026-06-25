@@ -14,6 +14,8 @@ from schemas.department import (
     DepartmentDetailResponse,
     DepartmentEmployeeJoinListResponse,
     MessageResponse,
+    DepartmentStatisticsListResponse,
+    DepartmentEmployeesResponse,
 )
 
 from service.department import DepartmentService
@@ -58,6 +60,47 @@ def read_departments_with_employees(
 
     return service.get_departments_with_employees()
 
+@router.get(
+    "/statistics",
+    response_model=DepartmentStatisticsListResponse,
+)
+def department_statistics(
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            [
+                RoleEnum.ADMIN.value,
+                RoleEnum.MANAGER.value,
+            ]
+        )
+    ),
+):
+    service = DepartmentService(db)
+
+    return service.get_department_statistics()
+
+
+@router.get(
+    "/{department_uuid}/employees",
+    response_model=DepartmentEmployeesResponse,
+)
+def read_department_employees(
+    department_uuid: UUID,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            [
+                RoleEnum.ADMIN.value,
+                RoleEnum.MANAGER.value,
+            ]
+        )
+    ),
+):
+    service = DepartmentService(db)
+
+    return service.get_department_employees(
+        department_uuid
+    )
 
 # Get Single Department
 @router.get("/{department_uuid}", response_model=DepartmentDetailResponse)
@@ -73,7 +116,6 @@ def read_department(
     service = DepartmentService(db)
 
     return service.get_department_by_id(department_uuid)
-
 
 # Update Department
 @router.put("/{department_uuid}", response_model=DepartmentCreateResponse)
@@ -98,3 +140,5 @@ def delete_dept(
     service = DepartmentService(db)
 
     return service.delete_department(department_uuid)
+
+
