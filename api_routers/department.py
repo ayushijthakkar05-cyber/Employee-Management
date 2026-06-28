@@ -77,7 +77,9 @@ def department_statistics(
 ):
     service = DepartmentService(db)
 
-    return service.get_department_statistics()
+    return service.get_department_statistics(
+        current_user
+    )
 
 
 @router.get(
@@ -99,9 +101,9 @@ def read_department_employees(
     service = DepartmentService(db)
 
     return service.get_department_employees(
-        department_uuid
-    )
-
+    department_uuid,
+    current_user,
+)
 # Get Single Department
 @router.get("/{department_uuid}", response_model=DepartmentDetailResponse)
 def read_department(

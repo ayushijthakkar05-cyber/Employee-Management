@@ -103,7 +103,9 @@ def employee_statistics(
 ):
     service = EmployeeService(db)
 
-    return service.get_employee_statistics()
+    return service.get_employee_statistics(
+    current_user
+)
 
 @router.get("/{employee_uuid}", response_model=EmployeeResponse)
 def read_employee(
@@ -120,7 +122,10 @@ def read_employee(
 ):
     service = EmployeeService(db)
 
-    return service.get_employee_by_uuid(employee_uuid)
+    return service.get_employee_by_uuid(
+    employee_uuid,
+    current_user,
+)
 
 
 
@@ -134,7 +139,11 @@ def update_emp(
 ):
     service = EmployeeService(db)
 
-    return service.update_employee(employee_uuid, employee)
+    return service.update_employee(
+    employee_uuid,
+    employee,
+    current_user,
+)
 @router.put(
     "/users/{user_uuid}/assign-department"
 )
@@ -164,6 +173,9 @@ def delete_emp(
 ):
     service = EmployeeService(db)
 
-    return service.delete_employee(employee_uuid)
+    return service.delete_employee(
+    employee_uuid,
+    current_user,
+)
 
 

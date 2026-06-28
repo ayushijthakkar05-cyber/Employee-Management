@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Edit Employee</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Edit Employee</h1>
+
+<button onclick="window.location.href='admin-employees.html'">
+    Back
+</button>
+
+<hr>
+
+<input
+    id="firstName"
+    placeholder="First Name"
+>
+<br>
+<small id="firstNameError" class="error"></small>
+
+<br><br>
+
+<input
+    id="lastName"
+    placeholder="Last Name"
+>
+<br>
+<small id="lastNameError" class="error"></small>
+
+<br><br>
+
+<input
+    id="email"
+    placeholder="Email"
+>
+<br>
+<small id="emailError" class="error"></small>
+
+<br><br>
+
+<input
+    id="age"
+    type="number"
+    placeholder="Age"
+>
+<br>
+<small id="ageError" class="error"></small>
+
+<br><br>
+
+<select id="departmentId">
+
+</select>
+<br>
+<small id="departmentError" class="error"></small>
+
+<br><br>
+
+<button onclick="updateEmployee()">
+    Update Employee
+</button>
+
+<p id="message"></p>
+
+<script>
+
+const token = localStorage.getItem("token");
+
+if (!token) {
+    window.location.href = "login.html";
+}
+
+const params = new URLSearchParams(window.location.search);
+
+const employeeUuid = params.get("uuid");
+
+async function loadDepartments() {
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/departments/",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    let options = "";
+
+    data.data.forEach(dept => {
+
+        options += `
+            <option value="${dept.id}">
+                ${dept.name}
+            </option>
+        `;
+
+    });
+
+    document.getElementById("departmentId").innerHTML = options;
+
+}
+
+async function loadEmployee() {
+
+    const response = await fetch(
+        `http://127.0.0.1:8000/employees/${employeeUuid}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    document.getElementById("firstName").value =
+        data.first_name;
+
+    document.getElementById("lastName").value =
+        data.last_name;
+
+    document.getElementById("email").value =
+        data.email;
+
+    document.getElementById("age").value =
+        data.age;
+
+    document.getElementById("departmentId").value =
+        data.department.id;
+
+}
+
+async function updateEmployee() {
+
+    document.getElementById("message").innerText = "";
+
+    document.getElementById("firstNameError").innerText = "";
+    document.getElementById("lastNameError").innerText = "";
+    document.getElementById("emailError").innerText = "";
+    document.getElementById("ageError").innerText = "";
+    document.getElementById("departmentError").innerText = "";
+
+    const firstName =
+        document.getElementById("firstName").value.trim();
+
+    const lastName =
+        document.getElementById("lastName").value.trim();
+
+    const email =
+        document.getElementById("email").value.trim();
+
+    const age =
+        document.getElementById("age").value;
+
+    const department =
+        document.getElementById("departmentId").value;
+
+    let valid = true;
+
+    if (!firstName) {
+
+        document.getElementById("firstNameError").innerText =
+            "First Name is required";
+
+        valid = false;
+
+    }
+
+    if (!lastName) {
+
+        document.getElementById("lastNameError").innerText =
+            "Last Name is required";
+
+        valid = false;
+
+    }
+
+    if (!email) {
+
+        document.getElementById("emailError").innerText =
+            "Email is required";
+
+        valid = false;
+
+    }
+
+    if (!age) {
+
+        document.getElementById("ageError").innerText =
+            "Age is required";
+
+        valid = false;
+
+    }
+
+    if (!department) {
+
+        document.getElementById("departmentError").innerText =
+            "Department is required";
+
+        valid = false;
+
+    }
+
+    if (!valid) {
+        return;
+    }
+
+    const response = await fetch(
+        `http://127.0.0.1:8000/employees/${employeeUuid}`,
+        {
+
+            method: "PUT",
+
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+
+            body: JSON.stringify({
+
+                firstName: firstName,
+
+                lastName: lastName,
+
+                email: email,
+
+                age: parseInt(age),
+
+                departmentId: parseInt(department)
+
+            })
+
+        }
+    );
+
+    const data = await response.json();
+
+    if (response.ok) {
+
+        document.getElementById("message").innerText =
+            data.message + " Redirecting...";
+
+        setTimeout(() => {
+
+            window.location.href =
+                "admin-employees.html";
+
+        }, 2000);
+
+    }
+
+    else {
+
+        if (Array.isArray(data.detail)) {
+
+            data.detail.forEach(error => {
+
+                const field =
+                    error.loc[error.loc.length - 1];
+
+                if (field === "firstName") {
+
+                    document.getElementById("firstNameError").innerText =
+                        error.msg;
+
+                }
+
+                else if (field === "lastName") {
+
+                    document.getElementById("lastNameError").innerText =
+                        error.msg;
+
+                }
+
+                else if (field === "email") {
+
+                    document.getElementById("emailError").innerText =
+                        error.msg;
+
+                }
+
+                else if (field === "age") {
+
+                    document.getElementById("ageError").innerText =
+                        error.msg;
+
+                }
+
+                else if (field === "departmentId") {
+
+                    document.getElementById("departmentError").innerText =
+                        error.msg;
+
+                }
+
+            });
+
+        }
+
+        else {
+
+            document.getElementById("message").innerText =
+                data.detail;
+
+        }
+
+    }
+
+}
+
+async function initialize() {
+
+    await loadDepartments();
+
+    await loadEmployee();
+
+}
+
+initialize();
+
+</script>
+
+</body>
+</html>

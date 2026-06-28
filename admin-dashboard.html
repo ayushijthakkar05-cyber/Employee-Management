@@ -1,0 +1,139 @@
+<h1>Admin Dashboard</h1>
+
+<button onclick="logout()">
+    Logout
+</button>
+
+<hr>
+
+<h2>Quick Stats</h2>
+
+<p>
+    Total Employees:
+    <span id="employeeCount">0</span>
+</p>
+
+<p>
+    Total Departments:
+    <span id="departmentCount">0</span>
+</p>
+
+<p>
+    Average Age:
+    <span id="averageAge">0</span>
+</p>
+
+<p>
+    Youngest Employee:
+    <span id="youngestAge">0</span>
+</p>
+
+<p>
+    Oldest Employee:
+    <span id="oldestAge">0</span>
+</p>
+
+<hr>
+
+<h2>Department Statistics</h2>
+
+<table border="1" cellpadding="10">
+
+    <thead>
+        <tr>
+            <th>Department</th>
+            <th>Employee Count</th>
+        </tr>
+    </thead>
+
+    <tbody id="departmentStatsTable">
+
+    </tbody>
+
+</table>
+
+<hr>
+
+<button onclick="window.location.href='admin-employees.html'">
+    Manage Employees
+</button>
+
+<br><br>
+
+<button onclick="window.location.href='departments.html'">
+    Manage Departments
+</button>
+
+<br><br>
+
+<button onclick="window.location.href='assign-manager.html'">
+    Assign Manager Department
+</button>
+
+<script>
+
+const token = localStorage.getItem("token");
+
+if (!token) {
+    window.location.href = "login.html";
+}
+
+async function loadStats() {
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/dashboard/admin",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    console.log(data);
+
+    document.getElementById("employeeCount").innerText =
+        data.total_employees;
+
+    document.getElementById("departmentCount").innerText =
+        data.total_departments;
+
+    document.getElementById("averageAge").innerText =
+        data.average_age;
+
+    document.getElementById("youngestAge").innerText =
+        data.youngest_age;
+
+    document.getElementById("oldestAge").innerText =
+        data.oldest_age;
+
+    let rows = "";
+
+    data.department_statistics.forEach(dept => {
+
+        rows += `
+        <tr>
+            <td>${dept.department_name}</td>
+            <td>${dept.employee_count}</td>
+        </tr>
+        `;
+    });
+
+    document.getElementById("departmentStatsTable").innerHTML =
+        rows;
+}
+
+function logout() {
+
+    localStorage.removeItem("token");
+
+    window.location.href = "login.html";
+}
+
+loadStats();
+
+</script>
+
+</body>
+</html>

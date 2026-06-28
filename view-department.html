@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Department Details</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Department Details</h1>
+
+<button onclick="window.location.href='departments.html'">
+    Back
+</button>
+
+<hr>
+
+<p>
+    <b>Name:</b>
+    <span id="departmentName"></span>
+</p>
+
+<p>
+    <b>Description:</b>
+    <span id="departmentDescription"></span>
+</p>
+
+<hr>
+
+<h2>Employees</h2>
+
+<table border="1" cellpadding="10">
+
+    <thead>
+
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Age</th>
+        </tr>
+
+    </thead>
+
+    <tbody id="employeeTable">
+
+    </tbody>
+
+</table>
+
+<script>
+
+const token =
+    localStorage.getItem("token");
+
+if(!token){
+
+    window.location.href =
+        "login.html";
+}
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+const departmentUuid =
+    params.get("uuid");
+
+async function loadDepartment(){
+
+    const response = await fetch(
+        `http://127.0.0.1:8000/departments/${departmentUuid}`,
+        {
+            headers:{
+                Authorization:
+                    `Bearer ${token}`
+            }
+        }
+    );
+
+    const data =
+        await response.json();
+
+    console.log(data);
+
+    document.getElementById("departmentName")
+        .innerText =
+        data.name;
+
+    document.getElementById("departmentDescription")
+        .innerText =
+        data.description ?? "";
+
+    let html = "";
+
+    data.employees.forEach(emp => {
+
+        html += `
+        <tr>
+
+            <td>${emp.name}</td>
+
+            <td>${emp.email}</td>
+
+            <td>${emp.age}</td>
+
+        </tr>
+        `;
+    });
+
+    document.getElementById("employeeTable")
+        .innerHTML =
+        html;
+}
+
+loadDepartment();
+
+</script>
+
+</body>
+</html>

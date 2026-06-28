@@ -122,7 +122,7 @@ class MessageResponse(BaseModel):
     message: str
 
 
-# Success message response for manager/admin/employee dashboard
+# Success message response for manager/admin/employee-dashboard.html
 class DashboardResponse(BaseModel):
     message: str
     user: str

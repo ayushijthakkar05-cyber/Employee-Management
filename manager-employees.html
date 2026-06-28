@@ -9,7 +9,7 @@
 
 <h1>Manager Employee Portal</h1>
 
-<button onclick="window.location.href='manager.html'">
+<button onclick="window.location.href='manager-dashboard.html'">
     Back To Dashboard
 </button>
 
@@ -36,10 +36,6 @@
     <span id="role"></span>
 </p>
 
-<p>
-    <b>Verified:</b>
-    <span id="verified"></span>
-</p>
 
 <hr>
 
@@ -92,8 +88,6 @@ async function loadProfile() {
     document.getElementById("role").innerText =
         data.role.name;
 
-    document.getElementById("verified").innerText =
-        data.is_verified;
 }
 
 async function loadEmployees() {
@@ -144,20 +138,18 @@ async function loadEmployees() {
         .innerHTML = rows;
 }
 
-function viewEmployee(employeeUuid) {
 
-    alert(
-        "View Employee Coming Soon\n\nUUID: " +
-        employeeUuid
-    );
+
+ function viewEmployee(employeeUuid){
+
+    window.location.href =
+      `manager-view-employee.html?uuid=${employeeUuid}`;
 }
 
-function editEmployee(employeeUuid) {
+function editEmployee(uuid){
 
-    alert(
-        "Edit Employee Coming Soon\n\nUUID: " +
-        employeeUuid
-    );
+    window.location.href =
+    `manager-edit-employee.html?uuid=${uuid}`;
 }
 
 function logout() {

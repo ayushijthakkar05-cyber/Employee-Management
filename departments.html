@@ -9,7 +9,7 @@
 
 <h1>Department Management</h1>
 
-<button onclick="window.location.href='admin.html'">
+<button onclick="window.location.href='admin-dashboard.html'">
     Back To Dashboard
 </button>
 
@@ -23,6 +23,7 @@
     + Create Department
 </button>
 
+<p id="message"></p>
 <hr>
 
 <table border="1" cellpadding="10">
@@ -112,15 +113,18 @@ async function loadDepartments() {
 
 function viewDepartment(uuid){
 
-    alert("Coming Soon");
+    window.location.href =
+        `view-department.html?uuid=${uuid}`;
 }
 
 function editDepartment(uuid){
 
-    alert("Coming Soon");
+    window.location.href =
+        `edit-department.html?uuid=${uuid}`;
 }
-
 async function deleteDepartment(uuid){
+
+    document.getElementById("message").innerText = "";
 
     const response = await fetch(
         `http://127.0.0.1:8000/departments/${uuid}`,
@@ -136,11 +140,21 @@ async function deleteDepartment(uuid){
     const data =
         await response.json();
 
-    alert(data.message);
+    if(response.ok){
 
-    loadDepartments();
+        document.getElementById("message").innerText =
+            data.message;
+
+        loadDepartments();
+
+    }
+    else{
+
+        document.getElementById("message").innerText =
+            data.detail;
+
+    }
 }
-
 function logout(){
 
     localStorage.removeItem("token");

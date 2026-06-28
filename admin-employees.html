@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Employee Management</title>
+     <title>Admin Employee Management</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -10,7 +10,7 @@
 
 <h1>Employee Management</h1>
 
-<button onclick="window.location.href='admin.html'">
+<button onclick="window.location.href='admin-dashboard.html'">
     Back To Dashboard
 </button>
 
@@ -25,7 +25,7 @@
     placeholder="Search Employee"
 >
 
-<button onclick="loadEmployees()">
+<button onclick="searchEmployees()">
     Search
 </button>
 
@@ -62,8 +62,8 @@
 </table>
 
 <br>
-
-<button onclick="previousPage()">
+<p id="message"></p>
+<button id="previousBtn" onclick="previousPage()">
     Previous
 </button>
 
@@ -71,7 +71,7 @@
     Page 1
 </span>
 
-<button onclick="nextPage()">
+<button id="nextBtn" onclick="nextPage()">
     Next
 </button>
 
@@ -81,6 +81,7 @@ const token =
     localStorage.getItem("token");
 
 let currentPage = 1;
+let totalPages = 1;
 
 if (!token) {
 
@@ -89,7 +90,7 @@ if (!token) {
 }
 
 async function loadEmployees() {
-
+    document.getElementById("message").innerText = "";
     const search =
         document.getElementById("search").value;
 
@@ -105,55 +106,65 @@ async function loadEmployees() {
     const data =
         await response.json();
 
+        if (data.data.length === 0) {
+
+    document.getElementById("employeeTable").innerHTML =
+        `<tr>
+            <td colspan="5" style="text-align:center;">
+                No Employees Found
+            </td>
+        </tr>`;
+}
+else {
+
     let html = "";
 
     data.data.forEach(emp => {
 
         html += `
         <tr>
-
             <td>${emp.full_name}</td>
-
             <td>${emp.email}</td>
-
             <td>${emp.age}</td>
-
             <td>${emp.department.name}</td>
-
             <td>
-
-                <button
-                    onclick="viewEmployee('${emp.uuid}')">
-                    View
-                </button>
-
-                <button
-                    onclick="editEmployee('${emp.uuid}')">
-                    Edit
-                </button>
-
-                <button
-                    onclick="deleteEmployee('${emp.uuid}')">
-                    Delete
-                </button>
-
+                <button onclick="viewEmployee('${emp.uuid}')">View</button>
+                <button onclick="editEmployee('${emp.uuid}')">Edit</button>
+                <button onclick="deleteEmployee('${emp.uuid}')">Delete</button>
             </td>
-
         </tr>
         `;
     });
 
-    document.getElementById("employeeTable")
-        .innerHTML = html;
+        document.getElementById("employeeTable").innerHTML = html;
+    }
+        totalPages = Math.max(1, Math.ceil(data.total / 5));
 
-    document.getElementById("pageNumber")
-        .innerText =
-        `Page ${currentPage}`;
+        document.getElementById("pageNumber").innerText =
+        `Page ${currentPage} of ${totalPages}`;
+
+        if (currentPage === 1) {
+
+        document.getElementById("previousBtn").style.display = "none";
+
+    } else {
+
+        document.getElementById("previousBtn").style.display = "inline-block";
+    }
+
+    if (currentPage >= totalPages) {
+
+        document.getElementById("nextBtn").style.display = "none";
+
+    } else {
+
+        document.getElementById("nextBtn").style.display = "inline-block";
+    }
 }
 
 function previousPage() {
 
-    if(currentPage > 1){
+    if (currentPage > 1) {
 
         currentPage--;
 
@@ -163,22 +174,39 @@ function previousPage() {
 
 function nextPage() {
 
-    currentPage++;
+    if (currentPage < totalPages) {
+
+        currentPage++;
+
+        loadEmployees();
+    }
+}
+function searchEmployees() {
+
+    currentPage = 1;
 
     loadEmployees();
 }
-
 function viewEmployee(uuid){
 
-    alert("Coming Soon");
+    window.location.href =
+        `view-employee.html?uuid=${uuid}`;
 }
 
 function editEmployee(uuid){
 
-    alert("Coming Soon");
+    window.location.href =
+    `edit-employee.html?uuid=${uuid}`;
 }
 
 async function deleteEmployee(uuid){
+
+    const confirmDelete =
+        confirm("Are you sure you want to delete this employee?");
+
+    if(!confirmDelete){
+        return;
+    }
 
     const response = await fetch(
         `http://127.0.0.1:8000/employees/${uuid}`,
@@ -192,11 +220,17 @@ async function deleteEmployee(uuid){
     );
 
     const data =
-        await response.json();
+    await response.json();
 
-    alert(data.message);
+document.getElementById("message").style.color = "green";
 
+document.getElementById("message").innerHTML = `
+🗑 <b>${data.message}</b>
+`;
+
+setTimeout(() => {
     loadEmployees();
+}, 1000);
 }
 
 function logout(){

@@ -12,23 +12,25 @@
     <h2>Register</h2>
 
     <input id="username" placeholder="Username">
-    <br><br>
+    <p id="usernameError" class="error"></p>
 
     <input id="email" placeholder="Email">
-    <br><br>
+    <p id="emailError" class="error"></p>
 
-    <input id="password" type="password" placeholder="Password">
-    <br><br>
+    <input
+    id="password"
+    type="password"
+    placeholder="Password"
+>   <p id="passwordError" class="error"></p>
 
-    <input id="confirmPassword"
-           type="password"
-           placeholder="Confirm Password">
-    <br><br>
+   <input
+    id="confirmPassword"
+    type="password"
+    placeholder="Confirm Password"
+>   <p id="confirmPasswordError" class="error"></p>
 
     <select id="roleId">
-
-        <option value="1">Admin</option>
-
+        
         <option value="2">Manager</option>
 
         <option value="3">Employee</option>
@@ -55,7 +57,6 @@
 <script>
 
 async function register() {
-
     const username =
         document.getElementById("username").value;
 
@@ -70,6 +71,59 @@ async function register() {
 
     const roleId =
         parseInt(document.getElementById("roleId").value);
+
+    document.getElementById("usernameError").innerText = "";
+    document.getElementById("emailError").innerText = "";
+    document.getElementById("passwordError").innerText = "";
+    document.getElementById("confirmPasswordError").innerText = "";
+    document.getElementById("result").innerText = "";
+
+    let valid = true;
+
+    if (!username.trim()) {
+
+        document.getElementById("usernameError").innerText =
+            "Username is required.";
+
+        valid = false;
+    }
+
+    if (!email.trim()) {
+
+        document.getElementById("emailError").innerText =
+            "Email is required.";
+
+        valid = false;
+    }
+
+    if (!password) {
+
+        document.getElementById("passwordError").innerText =
+            "Password is required.";
+
+        valid = false;
+    }
+
+    if (!confirmPassword) {
+
+        document.getElementById("confirmPasswordError").innerText =
+            "Please confirm your password.";
+
+        valid = false;
+    }
+
+    if (password && confirmPassword && password !== confirmPassword) {
+
+        document.getElementById("confirmPasswordError").innerText =
+            "Passwords do not match.";
+
+        valid = false;
+    }
+
+    if (!valid) {
+        return;
+}
+
 
     const response = await fetch(
         "http://127.0.0.1:8000/auth/register",
@@ -101,8 +155,14 @@ async function register() {
             email
         );
 
-        document.getElementById("result")
-            .innerText = data.message;
+        document.getElementById("result").style.color = "green";
+
+        document.getElementById("result").innerHTML = `
+        🎉 <b>Registration Successful!</b><br><br>
+        An OTP has been sent to your email.<br>
+        Please verify your email before logging in.<br><br>
+        Redirecting...
+        `;
 
         setTimeout(() => {
             window.location.href =
@@ -110,7 +170,7 @@ async function register() {
         }, 2000);
 
     } else {
-
+        document.getElementById("result").style.color = "red";
         let errorMessage =
             "Registration Failed";
 
@@ -128,8 +188,17 @@ async function register() {
             }
         }
 
-        document.getElementById("result")
-            .innerText = errorMessage;
+        if (Array.isArray(data.detail)) {
+
+    document.getElementById("result").innerText =
+        data.detail.map(error => error.msg).join(", ");
+
+}
+        else {
+
+            document.getElementById("result").innerText =
+                data.detail;
+        }
     }
 }
 

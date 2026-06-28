@@ -32,16 +32,30 @@
     <span id="role"></span>
 </p>
 
-<p>
-    <b>Verified:</b>
-    <span id="verified"></span>
-</p>
 
 <hr>
 
 <button onclick="window.location.href='change-password.html'">
     Change Password
 </button>
+<hr>
+
+<h2>Employee Details</h2>
+
+<p>
+    <b>Full Name:</b>
+    <span id="fullName"></span>
+</p>
+
+<p>
+    <b>Age:</b>
+    <span id="age"></span>
+</p>
+
+<p>
+    <b>Department:</b>
+    <span id="department"></span>
+</p>
 
 <script>
 
@@ -74,8 +88,6 @@ async function loadProfile() {
     document.getElementById("role").innerText =
         data.role.name;
 
-    document.getElementById("verified").innerText =
-        data.is_verified;
 }
 
 function logout() {
@@ -85,8 +97,32 @@ function logout() {
     window.location.href = "login.html";
 }
 
-loadProfile();
 
+async function loadEmployeeProfile() {
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/employees/me",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    document.getElementById("fullName").innerText =
+        data.full_name;
+
+    document.getElementById("age").innerText =
+        data.age;
+
+    document.getElementById("department").innerText =
+        data.department.name;
+}
+
+loadProfile();
+loadEmployeeProfile();
 </script>
 
 </body>

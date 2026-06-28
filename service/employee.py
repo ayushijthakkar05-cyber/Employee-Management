@@ -80,20 +80,14 @@ class EmployeeService:
              query = query.filter(
             Employee.department_id == current_user.manager_department_id
     )
-        if (
-            current_user
-            and current_user.role.name == "manager"
-    ):
-            query = query.filter(
-            Employee.department_id
-            == current_user.manager_department_id
-        )
 
         if search:
             if search.isdigit():
                 query = query.filter(Employee.age == int(search))
             else:
-                query = query.filter(Employee.full_name.ilike(f"%{search}%"))
+                query = query.filter(
+                    Employee.full_name.ilike(f"%{search.strip()}%")
+                )
 
         if age_from is not None:
             query = query.filter(Employee.age >= age_from)
@@ -135,7 +129,12 @@ class EmployeeService:
         }
 
     @simple_log
-    def update_employee(self, employee_uuid: UUID, employee):
+    def update_employee(
+    self,
+    employee_uuid: UUID,
+    employee,
+    current_user=None,
+):
         db_employee = (
             self.db.query(Employee).filter(Employee.uuid == employee_uuid).first()
         )
@@ -143,6 +142,16 @@ class EmployeeService:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
             )
+            
+        if (
+                current_user.role.name == "MANAGER"
+                and db_employee.department_id
+                != current_user.manager_department_id
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied"
+                )    
 
         department = (
             self.db.query(Department)
@@ -180,7 +189,11 @@ class EmployeeService:
         return {"message": "Employee updated successfully", "employee": db_employee}
 
     @simple_log
-    def delete_employee(self, employee_uuid: UUID):
+    def delete_employee(
+    self,
+    employee_uuid: UUID,
+    current_user=None,
+):
 
         db_employee = (
             self.db.query(Employee).filter(Employee.uuid == employee_uuid).first()
@@ -190,6 +203,16 @@ class EmployeeService:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
             )
+            
+        if (
+            current_user.role.name == "MANAGER"
+            and db_employee.department_id
+            != current_user.manager_department_id
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied"
+            )    
 
         self.db.delete(db_employee)
         self.db.commit()
@@ -247,7 +270,11 @@ class EmployeeService:
             ]
         }
     @simple_log
-    def get_employee_by_uuid(self, employee_uuid: UUID):
+    def get_employee_by_uuid(
+        self,
+        employee_uuid: UUID,
+        current_user=None,
+    ):
 
         employee = (
             self.db.query(Employee)
@@ -261,38 +288,23 @@ class EmployeeService:
                 detail="Employee not found"
             )
 
+        if (
+            current_user.role.name == "MANAGER"
+            and employee.department_id
+            != current_user.manager_department_id
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied"
+            )
+
         return employee
     
     @simple_log
-    def get_employee_statistics(self):
-
-        total = self.db.query(Employee).count()
-
-        average_age = (
-            self.db.query(func.avg(Employee.age))
-            .scalar()
-        )
-
-        youngest_age = (
-            self.db.query(func.min(Employee.age))
-            .scalar()
-        )
-
-        oldest_age = (
-            self.db.query(func.max(Employee.age))
-            .scalar()
-        )
-
-        return {
-            "total_employees": total,
-            "average_age": round(average_age or 0, 2),
-            "youngest_age": youngest_age or 0,
-            "oldest_age": oldest_age or 0,
-        }
-        
-        
-    @simple_log
-    def get_my_employee_profile(self, current_user):
+    def get_my_employee_profile(
+        self,
+        current_user,
+    ):
 
         employee = (
             self.db.query(Employee)
@@ -306,4 +318,44 @@ class EmployeeService:
                 detail="Employee profile not found"
             )
 
-        return employee    
+        return employee
+    @simple_log
+    def get_employee_statistics(
+        self,
+        current_user=None,
+    ):
+
+        query = self.db.query(Employee)
+
+        if current_user.role.name == "MANAGER":
+            query = query.filter(
+                Employee.department_id
+                == current_user.manager_department_id
+            )
+
+        total = query.count()
+
+        average_age = (
+            query.with_entities(
+                func.avg(Employee.age)
+            ).scalar()
+        )
+
+        youngest_age = (
+            query.with_entities(
+                func.min(Employee.age)
+            ).scalar()
+        )
+
+        oldest_age = (
+            query.with_entities(
+                func.max(Employee.age)
+            ).scalar()
+        )
+
+        return {
+            "total_employees": total,
+            "average_age": round(average_age or 0, 2),
+            "youngest_age": youngest_age or 0,
+            "oldest_age": oldest_age or 0,
+        }

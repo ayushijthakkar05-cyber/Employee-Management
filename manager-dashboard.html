@@ -40,8 +40,8 @@ if (!token) {
 
 async function loadStats() {
 
-    const employeeResponse = await fetch(
-        "http://127.0.0.1:8000/employees/?limit=1000",
+    const response = await fetch(
+        "http://127.0.0.1:8000/dashboard/manager",
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -49,12 +49,14 @@ async function loadStats() {
         }
     );
 
-    const employeeData =
-        await employeeResponse.json();
+    const data =
+        await response.json();
+
+    console.log(data);
 
     document.getElementById("employeeCount")
         .innerText =
-        employeeData.total;
+        data.total_employees;
 }
 
 function logout() {
@@ -63,10 +65,7 @@ function logout() {
 
     window.location.href = "login.html";
 }
-
 loadStats();
-
 </script>
-
 </body>
 </html>

@@ -44,7 +44,7 @@ def manager_dashboard(
 ):
     service = DashboardService(db)
 
-    return service.get_manager_dashboard()
+    return service.get_manager_dashboard(current_user)
 
 @router.get(
     "/employee",

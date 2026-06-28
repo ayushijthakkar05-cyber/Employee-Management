@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Assign Manager Department</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Assign Manager Department</h1>
+
+<button onclick="window.location.href='admin-dashboard.html'">
+    Back To Dashboard
+</button>
+
+<hr>
+<p id="message"></p>
+<table border="1" cellpadding="10">
+
+    <thead>
+
+        <tr>
+            <th>Manager</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Action</th>
+        </tr>
+
+    </thead>
+
+    <tbody id="managerTable">
+
+    </tbody>
+
+</table>
+
+<script>
+
+const token =
+    localStorage.getItem("token");
+
+if(!token){
+
+    window.location.href =
+        "login.html";
+}
+
+let departments = [];
+
+async function loadDepartments(){
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/departments/",
+        {
+            headers:{
+                Authorization:
+                    `Bearer ${token}`
+            }
+        }
+    );
+
+    const data =
+        await response.json();
+
+    departments =
+        data.data;
+}
+
+async function loadManagers(){
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/users/managers",
+        {
+            headers:{
+                Authorization:
+                    `Bearer ${token}`
+            }
+        }
+    );
+
+    const data =
+        await response.json();
+
+    let html = "";
+
+    data.data.forEach(manager => {
+
+        let options = "";
+
+        departments.forEach(dept => {
+
+            options += `
+                <option
+                    value="${dept.id}"
+                    ${manager.manager_department_id === dept.id ? "selected" : ""}
+                >
+                    ${dept.name}
+                </option>
+                `;
+        });
+
+        html += `
+        <tr>
+
+            <td>${manager.username}</td>
+
+            <td>${manager.email}</td>
+
+            <td>
+
+                <select id="dept-${manager.uuid}">
+                    ${options}
+                </select>
+
+            </td>
+
+            <td>
+
+                <button
+                    onclick="assignDepartment('${manager.uuid}')">
+                    Assign
+                </button>
+
+            </td>
+
+        </tr>
+        `;
+    });
+
+    document.getElementById("managerTable")
+        .innerHTML = html;
+}
+
+async function assignDepartment(userUuid){
+
+    document.getElementById("message").innerText = "";
+
+    const departmentId =
+        document.getElementById(
+            `dept-${userUuid}`
+        ).value;
+
+    const response = await fetch(
+        `http://127.0.0.1:8000/employees/users/${userUuid}/assign-department`,
+        {
+            method: "PUT",
+
+            headers:{
+                "Content-Type":
+                    "application/json",
+
+                Authorization:
+                    `Bearer ${token}`
+            },
+
+            body: JSON.stringify({
+
+                department_id:
+                    parseInt(departmentId)
+
+            })
+        }
+    );
+
+    const data =
+        await response.json();
+
+    if(response.ok){
+
+        document.getElementById("message").innerText =
+            data.message;
+
+    }
+    else{
+
+        document.getElementById("message").innerText =
+            data.detail;
+
+    }
+
+}
+async function initialize(){
+
+    await loadDepartments();
+
+    await loadManagers();
+}
+
+initialize();
+
+</script>
+
+</body>
+
+</html>

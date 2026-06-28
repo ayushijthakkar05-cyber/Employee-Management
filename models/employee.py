@@ -44,6 +44,12 @@ class Employee(Base, AuditMixin):
             return f"{self.first_name} {self.last_name}"
         return self.name
 
+    from sqlalchemy import func
+
     @full_name.expression
     def full_name(cls):
-        return func.concat(cls.first_name, " ", cls.last_name)
+        return (
+            func.coalesce(cls.first_name, "") +
+            " " +
+            func.coalesce(cls.last_name, "")
+        )

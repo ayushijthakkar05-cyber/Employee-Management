@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 
-from api_routers import employee, department, auth,dashboard
+from api_routers import employee, department, auth, dashboard, user
 
 app = FastAPI()
 
@@ -24,3 +24,4 @@ app.include_router(employee.router)
 app.include_router(department.router)
 app.include_router(auth.router)
 app.include_router(dashboard.router)
+app.include_router(user.router)

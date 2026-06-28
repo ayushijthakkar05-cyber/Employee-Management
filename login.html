@@ -11,43 +11,74 @@
 
     <h2>Login</h2>
 
-    <input
-        id="email"
-        placeholder="Email"
-    >
+   <input
+    id="email"
+    placeholder="Email"
+>
 
-    <br><br>
+<p id="emailError" class="error"></p>
 
-    <input
-        id="password"
-        type="password"
-        placeholder="Password"
-    >
+<br>
 
-    <br><br>
+<input
+    id="password"
+    type="password"
+    placeholder="Password"
+>
 
-    <button onclick="login()">
-        Login
-    </button>
+<p id="passwordError" class="error"></p>
 
-    <br><br>
+<br>
+
+<button onclick="login()">
+    Login
+</button>
+
+<p id="result"></p>
 
     <a href="register.html">
         New User? Register
     </a>
+    <br><br>
 
-    <p id="result"></p>
-
+    <a href="forgot-password.html">
+        Forgot Password?
+    </a>
 <script>
 
 async function login() {
 
     const email =
-        document.getElementById("email").value;
+        document.getElementById("email").value.trim();
 
     const password =
-        document.getElementById("password").value;
+        document.getElementById("password").value.trim();
 
+    document.getElementById("emailError").innerText = "";
+    document.getElementById("passwordError").innerText = "";
+    document.getElementById("result").innerText = "";
+
+    let valid = true;
+
+    if (!email) {
+
+        document.getElementById("emailError").innerText =
+            "Email is required.";
+
+        valid = false;
+    }
+
+    if (!password) {
+
+        document.getElementById("passwordError").innerText =
+            "Password is required.";
+
+        valid = false;
+    }
+
+    if (!valid) {
+        return;
+    }
     const response = await fetch(
         "http://127.0.0.1:8000/auth/login",
         {
@@ -95,38 +126,42 @@ async function login() {
     if(role === "ADMIN"){
 
         window.location.href =
-            "admin.html";
+            "admin-dashboard.html";
 
     }
     else if(role === "MANAGER"){
 
         window.location.href =
-            "manager.html";
+            "manager-dashboard.html";
 
     }
     else{
 
         window.location.href =
-            "employee.html";
+            "employee-dashboard.html";
 
     }
 }
 
-    else{
+else{
 
-        let errorMessage =
-            "Login Failed";
+    let errorMessage = "Login Failed";
 
-        if(data.detail){
+    if (Array.isArray(data.detail)) {
 
-            errorMessage =
-                data.detail;
-        }
+        errorMessage =
+            data.detail.map(error => error.msg).join(", ");
 
-        document.getElementById("result")
-            .innerText =
-            errorMessage;
     }
+    else if (data.detail) {
+
+        errorMessage = data.detail;
+    }
+
+    document.getElementById("result")
+        .innerText =
+        errorMessage;
+}
 }
 
 </script>

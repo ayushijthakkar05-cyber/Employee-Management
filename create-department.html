@@ -20,12 +20,26 @@
     placeholder="Department Name"
 >
 
+<br>
+
+<small
+    id="departmentNameError"
+    class="error">
+</small>
+
 <br><br>
 
 <input
     id="departmentDescription"
     placeholder="Department Description"
 >
+
+<br>
+
+<small
+    id="departmentDescriptionError"
+    class="error">
+</small>
 
 <br><br>
 
@@ -46,48 +60,115 @@ if (!token) {
         "login.html";
 }
 
-async function createDepartment(){
+async function createDepartment() {
+
+    document.getElementById("message").innerText = "";
+
+    document.getElementById("departmentNameError").innerText = "";
+
+    document.getElementById("departmentDescriptionError").innerText = "";
+
+    const departmentName =
+        document.getElementById("departmentName").value.trim();
+
+    const departmentDescription =
+        document.getElementById("departmentDescription").value.trim();
+
+    let valid = true;
+
+    if (!departmentName) {
+
+        document.getElementById("departmentNameError").innerText =
+            "Department Name is required";
+
+        valid = false;
+    }
+
+    if (!valid) {
+
+        return;
+    }
 
     const response = await fetch(
         "http://127.0.0.1:8000/departments/",
         {
+
             method: "POST",
 
             headers: {
+
                 "Content-Type":
                     "application/json",
 
                 Authorization:
                     `Bearer ${token}`
+
             },
 
             body: JSON.stringify({
 
-                name:
-                    document.getElementById("departmentName").value,
+                name: departmentName,
 
-                description:
-                    document.getElementById("departmentDescription").value
+                description: departmentDescription
+
             })
+
         }
     );
 
     const data =
         await response.json();
 
-    if(response.ok){
+    if (response.ok) {
 
-        alert(data.message);
+        document.getElementById("message").innerText =
+            data.message + " Redirecting...";
 
-        window.location.href =
-            "departments.html";
+        setTimeout(() => {
+
+            window.location.href =
+                "departments.html";
+
+        }, 2000);
+
     }
-    else{
 
-        document.getElementById("message")
-            .innerText =
-            data.detail;
+    else {
+
+        if (Array.isArray(data.detail)) {
+
+            data.detail.forEach(error => {
+
+                const field =
+                    error.loc[error.loc.length - 1];
+
+                if (field === "name") {
+
+                    document.getElementById("departmentNameError").innerText =
+                        error.msg;
+
+                }
+
+                else if (field === "description") {
+
+                    document.getElementById("departmentDescriptionError").innerText =
+                        error.msg;
+
+                }
+
+            });
+
+        }
+
+        else {
+
+            document.getElementById("message").innerText =
+                data.detail;
+
+        }
+
     }
+
 }
 
 </script>

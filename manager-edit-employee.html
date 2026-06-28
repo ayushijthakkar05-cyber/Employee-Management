@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Edit Employee</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Edit Employee</h1>
+
+<button onclick="window.location.href='manager-employees.html'">
+    Back
+</button>
+
+<hr>
+
+<input id="firstName" placeholder="First Name">
+
+<br><br>
+
+<input id="lastName" placeholder="Last Name">
+
+<br><br>
+
+<input id="email" placeholder="Email">
+
+<br><br>
+
+<input id="age" type="number" placeholder="Age">
+
+<br><br>
+
+<select id="departmentId"></select>
+
+<br><br>
+
+<button onclick="updateEmployee()">
+    Update Employee
+</button>
+
+<p id="message"></p>
+
+<script>
+
+const token = localStorage.getItem("token");
+
+if(!token){
+    window.location.href = "login.html";
+}
+
+const params = new URLSearchParams(window.location.search);
+const employeeUuid = params.get("uuid");
+
+async function loadDepartments(){
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/departments/",
+        {
+            headers:{
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    let options = "";
+
+    data.data.forEach(dept => {
+        options += `
+            <option value="${dept.id}">
+                ${dept.name}
+            </option>
+        `;
+    });
+
+    document.getElementById("departmentId").innerHTML = options;
+}
+
+async function loadEmployee(){
+
+    const response = await fetch(
+        `http://127.0.0.1:8000/employees/${employeeUuid}`,
+        {
+            headers:{
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    document.getElementById("firstName").value = data.first_name;
+    document.getElementById("lastName").value = data.last_name;
+    document.getElementById("email").value = data.email;
+    document.getElementById("age").value = data.age;
+    document.getElementById("departmentId").value = data.department.id;
+}
+
+
+async function updateEmployee(){
+
+    const response = await fetch(
+        `http://127.0.0.1:8000/employees/${employeeUuid}`,
+        {
+            method: "PUT",
+            headers:{
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+
+            body: JSON.stringify({
+
+                first_name:
+                    document.getElementById("firstName").value,
+
+                last_name:
+                    document.getElementById("lastName").value,
+
+                email:
+                    document.getElementById("email").value,
+
+                age:
+                    parseInt(document.getElementById("age").value),
+
+                department_id:
+                    parseInt(document.getElementById("departmentId").value)
+            })
+        }
+    );
+
+    const data = await response.json();
+
+    const msgEl = document.getElementById("message");
+
+    if(response.ok){
+
+        msgEl.innerText =
+            data.message || "Employee updated successfully";
+
+        msgEl.style.color = "green";
+
+        setTimeout(() => {
+            window.location.href =
+                "manager-employees.html";
+        }, 2000);
+
+    }
+    else{
+
+        if(Array.isArray(data.detail)){
+
+            msgEl.innerText =
+                data.detail.map(err => err.msg).join(", ");
+        }
+        else{
+
+            msgEl.innerText = data.detail;
+        }
+
+        msgEl.style.color = "red";
+    }
+}
+
+async function initialize(){
+    await loadDepartments();
+    await loadEmployee();
+}
+
+initialize();
+
+</script>
+
+</body>
+</html>
