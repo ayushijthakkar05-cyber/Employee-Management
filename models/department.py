@@ -23,7 +23,4 @@ class Department(Base, AuditMixin):
 
     description = Column(String(255), nullable=True)
 
-    employees = relationship(
-      "Employee",
-     back_populates="department"
-)
+    employees = relationship("Employee", back_populates="department")

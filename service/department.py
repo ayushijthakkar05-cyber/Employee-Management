@@ -87,37 +87,31 @@ class DepartmentService:
     def delete_department(self, department_uuid: UUID):
 
         db_department = (
-            self.db.query(Department)
-            .filter(Department.uuid == department_uuid)
-            .first()
+            self.db.query(Department).filter(Department.uuid == department_uuid).first()
         )
 
         if not db_department:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Department not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Department not found"
             )
 
         employee_count = (
             self.db.query(Employee)
-            .filter(
-                Employee.department_id == db_department.id
-            )
+            .filter(Employee.department_id == db_department.id)
             .count()
         )
 
         if employee_count > 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot delete department with employees"
+                detail="Cannot delete department with employees",
             )
 
         self.db.delete(db_department)
         self.db.commit()
 
-        return {
-            "message": "Department deleted successfully"
-        }
+        return {"message": "Department deleted successfully"}
+
     # GET SINGLE DEPARTMENT WITH EMPLOYEES
     @simple_log
     def get_department_by_id(self, department_uuid: UUID):
@@ -157,34 +151,21 @@ class DepartmentService:
                 for dept, emp in results
             ]
         }
+
     @simple_log
     def get_department_statistics(
         self,
         current_user=None,
     ):
 
-        query = (
-            self.db.query(
-                Department.name,
-                func.count(Employee.id)
-            )
-            .outerjoin(
-                Employee,
-                Employee.department_id == Department.id
-            )
+        query = self.db.query(Department.name, func.count(Employee.id)).outerjoin(
+            Employee, Employee.department_id == Department.id
         )
 
         if current_user.role.name == "MANAGER":
-            query = query.filter(
-                Department.id
-                == current_user.manager_department_id
-            )
+            query = query.filter(Department.id == current_user.manager_department_id)
 
-        results = (
-            query
-            .group_by(Department.name)
-            .all()
-        )
+        results = query.group_by(Department.name).all()
 
         return {
             "data": [
@@ -195,20 +176,16 @@ class DepartmentService:
                 for name, count in results
             ]
         }
-        
+
     @simple_log
     def get_department_employees(
-    self,
-    department_uuid: UUID,
-    current_user=None,
-):
+        self,
+        department_uuid: UUID,
+        current_user=None,
+    ):
 
         department = (
-            self.db.query(Department)
-            .filter(
-                Department.uuid == department_uuid
-            )
-            .first()
+            self.db.query(Department).filter(Department.uuid == department_uuid).first()
         )
 
         if not department:
@@ -216,20 +193,16 @@ class DepartmentService:
                 status_code=404,
                 detail="Department not found",
             )
-            
+
         if (
             current_user.role.name == "MANAGER"
-            and department.id
-            != current_user.manager_department_id
+            and department.id != current_user.manager_department_id
         ):
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied"
+                status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
             )
 
         return {
             "department_name": department.name,
             "employees": department.employees,
-        }    
-        
-        
+        }

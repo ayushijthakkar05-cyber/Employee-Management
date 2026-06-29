@@ -89,6 +89,7 @@ class DepartmentEmployeeJoinListResponse(BaseModel):
 class MessageResponse(BaseModel):
     message: str
 
+
 class DepartmentStatisticsResponse(BaseModel):
     department_name: str
     employee_count: int
@@ -96,7 +97,8 @@ class DepartmentStatisticsResponse(BaseModel):
 
 class DepartmentStatisticsListResponse(BaseModel):
     data: list[DepartmentStatisticsResponse]
-    
+
+
 class DepartmentEmployeesResponse(BaseModel):
     department_name: str
-    employees: list[DepartmentEmployeeResponse]    
+    employees: list[DepartmentEmployeeResponse]

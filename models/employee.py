@@ -49,7 +49,5 @@ class Employee(Base, AuditMixin):
     @full_name.expression
     def full_name(cls):
         return (
-            func.coalesce(cls.first_name, "") +
-            " " +
-            func.coalesce(cls.last_name, "")
+            func.coalesce(cls.first_name, "") + " " + func.coalesce(cls.last_name, "")
         )

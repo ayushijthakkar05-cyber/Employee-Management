@@ -60,6 +60,7 @@ def read_departments_with_employees(
 
     return service.get_departments_with_employees()
 
+
 @router.get(
     "/statistics",
     response_model=DepartmentStatisticsListResponse,
@@ -77,9 +78,7 @@ def department_statistics(
 ):
     service = DepartmentService(db)
 
-    return service.get_department_statistics(
-        current_user
-    )
+    return service.get_department_statistics(current_user)
 
 
 @router.get(
@@ -101,9 +100,11 @@ def read_department_employees(
     service = DepartmentService(db)
 
     return service.get_department_employees(
-    department_uuid,
-    current_user,
-)
+        department_uuid,
+        current_user,
+    )
+
+
 # Get Single Department
 @router.get("/{department_uuid}", response_model=DepartmentDetailResponse)
 def read_department(
@@ -118,6 +119,7 @@ def read_department(
     service = DepartmentService(db)
 
     return service.get_department_by_id(department_uuid)
+
 
 # Update Department
 @router.put("/{department_uuid}", response_model=DepartmentCreateResponse)
@@ -142,5 +144,3 @@ def delete_dept(
     service = DepartmentService(db)
 
     return service.delete_department(department_uuid)
-
-

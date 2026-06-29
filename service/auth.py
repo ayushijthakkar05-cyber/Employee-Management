@@ -132,6 +132,7 @@ class AuthService:
         )
 
         return {"access_token": access_token, "token_type": "bearer"}
+
     @simple_log
     def assign_manager_department(
         self,
@@ -139,11 +140,7 @@ class AuthService:
         department_id: int,
     ):
 
-        user = (
-            self.db.query(User)
-            .filter(User.uuid == user_uuid)
-            .first()
-        )
+        user = self.db.query(User).filter(User.uuid == user_uuid).first()
 
         if not user:
             raise HTTPException(
@@ -152,9 +149,7 @@ class AuthService:
             )
 
         department = (
-            self.db.query(Department)
-            .filter(Department.id == department_id)
-            .first()
+            self.db.query(Department).filter(Department.id == department_id).first()
         )
 
         if not department:
@@ -174,6 +169,7 @@ class AuthService:
             "department_id": department.id,
             "department_name": department.name,
         }
+
     @simple_log
     def change_password(self, current_user, password_data):
 
@@ -216,5 +212,3 @@ class AuthService:
 
     def verify_email(self, request):
         return verify_email_service(self.db, request.email, request.otp)
-    
-    

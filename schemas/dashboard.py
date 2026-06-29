@@ -1,9 +1,11 @@
 from pydantic import BaseModel
 
+
 class DepartmentStatistics(BaseModel):
     department_name: str
     employee_count: int
-    
+
+
 class AdminDashboardResponse(BaseModel):
     total_users: int
     total_employees: int

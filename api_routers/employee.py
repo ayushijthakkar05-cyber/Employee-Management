@@ -51,8 +51,16 @@ def read_employees(
 ):
     service = EmployeeService(db)
 
-    return service.get_employees(page, limit, search, age_from, age_to, sort, order,current_user,)
-
+    return service.get_employees(
+        page,
+        limit,
+        search,
+        age_from,
+        age_to,
+        sort,
+        order,
+        current_user,
+    )
 
 
 # Logged-in employee profile
@@ -64,6 +72,7 @@ def get_my_profile(
     service = EmployeeService(db)
 
     return service.get_my_employee_profile(current_user)
+
 
 # Employee + Department Inner Join (Admin, Manager)
 @router.get("/with-department", response_model=EmployeeDepartmentJoinListResponse)
@@ -86,6 +95,7 @@ def read_employees_left_join(
 
     return service.get_employees_left_join()
 
+
 @router.get(
     "/statistics",
     response_model=EmployeeStatisticsResponse,
@@ -103,9 +113,8 @@ def employee_statistics(
 ):
     service = EmployeeService(db)
 
-    return service.get_employee_statistics(
-    current_user
-)
+    return service.get_employee_statistics(current_user)
+
 
 @router.get("/{employee_uuid}", response_model=EmployeeResponse)
 def read_employee(
@@ -123,10 +132,9 @@ def read_employee(
     service = EmployeeService(db)
 
     return service.get_employee_by_uuid(
-    employee_uuid,
-    current_user,
-)
-
+        employee_uuid,
+        current_user,
+    )
 
 
 # Update employee (Admin, Manager)
@@ -140,22 +148,18 @@ def update_emp(
     service = EmployeeService(db)
 
     return service.update_employee(
-    employee_uuid,
-    employee,
-    current_user,
-)
-@router.put(
-    "/users/{user_uuid}/assign-department"
-)
+        employee_uuid,
+        employee,
+        current_user,
+    )
+
+
+@router.put("/users/{user_uuid}/assign-department")
 def assign_manager_department(
     user_uuid: UUID,
     request: AssignManagerDepartmentRequest,
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles(
-            [RoleEnum.ADMIN.value]
-        )
-    ),
+    current_user=Depends(require_roles([RoleEnum.ADMIN.value])),
 ):
     service = AuthService(db)
 
@@ -163,6 +167,7 @@ def assign_manager_department(
         user_uuid,
         request.department_id,
     )
+
 
 # Delete employee (Admin only)
 @router.delete("/{employee_uuid}", response_model=MessageResponse)
@@ -174,8 +179,6 @@ def delete_emp(
     service = EmployeeService(db)
 
     return service.delete_employee(
-    employee_uuid,
-    current_user,
-)
-
-
+        employee_uuid,
+        current_user,
+    )

@@ -22,13 +22,9 @@ class DashboardService:
 
     def get_manager_dashboard(self, current_user):
 
-
         total_employees = (
             self.db.query(Employee)
-            .filter(
-                Employee.department_id ==
-                current_user.manager_department_id
-            )
+            .filter(Employee.department_id == current_user.manager_department_id)
             .count()
         )
 
@@ -70,24 +66,19 @@ class DashboardService:
 
         for department in departments:
 
-            department_statistics.append({
-                "department_name": department.name,
-                "employee_count": len(department.employees)
-            })
+            department_statistics.append(
+                {
+                    "department_name": department.name,
+                    "employee_count": len(department.employees),
+                }
+            )
 
         return {
-
             "total_users": total_users,
-
             "total_employees": total_employees,
-
             "total_departments": total_departments,
-
             "average_age": average_age,
-
             "youngest_age": youngest_age,
-
             "oldest_age": oldest_age,
-
             "department_statistics": department_statistics,
         }

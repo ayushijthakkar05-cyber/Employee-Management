@@ -20,9 +20,7 @@ router = APIRouter(
 )
 def get_managers(
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles([RoleEnum.ADMIN.value])
-    ),
+    current_user=Depends(require_roles([RoleEnum.ADMIN.value])),
 ):
     service = UserService(db)
 

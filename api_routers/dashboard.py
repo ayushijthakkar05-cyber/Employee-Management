@@ -18,19 +18,19 @@ router = APIRouter(
     tags=["Dashboard"],
 )
 
+
 @router.get(
     "/admin",
     response_model=AdminDashboardResponse,
 )
 def admin_dashboard(
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles([RoleEnum.ADMIN.value])
-    ),
+    current_user=Depends(require_roles([RoleEnum.ADMIN.value])),
 ):
     service = DashboardService(db)
 
     return service.get_admin_dashboard()
+
 
 @router.get(
     "/manager",
@@ -38,13 +38,12 @@ def admin_dashboard(
 )
 def manager_dashboard(
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles([RoleEnum.MANAGER.value])
-    ),
+    current_user=Depends(require_roles([RoleEnum.MANAGER.value])),
 ):
     service = DashboardService(db)
 
     return service.get_manager_dashboard(current_user)
+
 
 @router.get(
     "/employee",
@@ -52,11 +51,8 @@ def manager_dashboard(
 )
 def employee_dashboard(
     db: Session = Depends(get_db),
-    current_user=Depends(
-        require_roles([RoleEnum.EMPLOYEE.value])
-    ),
+    current_user=Depends(require_roles([RoleEnum.EMPLOYEE.value])),
 ):
     service = DashboardService(db)
 
     return service.get_employee_dashboard(current_user)
-

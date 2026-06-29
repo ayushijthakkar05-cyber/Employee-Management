@@ -10,12 +10,6 @@ class UserService:
 
     def get_managers(self):
 
-        managers = (
-            self.db.query(User)
-            .filter(User.role.has(name="MANAGER"))
-            .all()
-        )
+        managers = self.db.query(User).filter(User.role.has(name="MANAGER")).all()
 
-        return {
-            "data": managers
-        }
+        return {"data": managers}

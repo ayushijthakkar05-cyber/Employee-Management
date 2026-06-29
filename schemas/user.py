@@ -13,9 +13,7 @@ class ManagerResponse(BaseModel):
     email: str
     manager_department_id: int | None = None
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class ManagerListResponse(BaseModel):
